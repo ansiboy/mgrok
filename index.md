@@ -53,3 +53,17 @@ ngrok -proto=tcp -config=ngrok.cfg 3306
 * [linux x86](download/linux_386.zip)
 
 * [linux arm](download/linux_arm.zip)
+
+------------------------
+
+### 讨论组
+
+<br/>
+
+QQ 群：
+
+* 71418067 高级讨论群，大牛多
+
+* 371677466 初级讨论群
+
+
