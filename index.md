@@ -20,7 +20,7 @@
 
 **建立HTTP隧道**
 
-```HTTP
+```
 ngrok -subdomain pub -proto=http -config=ngrok.cfg 80
 ```
 
