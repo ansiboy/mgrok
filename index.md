@@ -34,16 +34,16 @@ ngrok -proto=tcp -config=ngrok.cfg 3306
 
 #### 下载
 
-* [windows x64]()
+* [windows x64](download/windows_amd64.zip)
 
-* [windows x86]()
+* [windows x86](download/windows_386.zip)
 
-* [mac x64]()
+* [mac x64](download/darwin_amd64.zip)
 
-* [mac x86]()
+* [mac x86](download/darwin_386.zip)
 
-* [linux x64]()
+* [linux x64](download/linux_amd64.zip)
 
-* [linux x86]()
+* [linux x86](download/linux_386.zip)
 
-* [linux arm]()
+* [linux arm](download/linux_arm.zip)
