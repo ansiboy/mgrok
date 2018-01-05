@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
+
 	vhost "github.com/inconshreveable/go-vhost"
 	//"net"
 	"ngrok/conn"
@@ -77,7 +78,11 @@ func httpHandler(c conn.Conn, proto string) {
 	}
 
 	// read out the Host header and auth from the request
-	host := strings.ToLower(vhostConn.Host())
+	host := vhostConn.Request.Header.Get("X-Host")
+	if len(host) == 0 {
+		host = vhostConn.Host()
+	}
+	host = strings.ToLower(host)
 	auth := vhostConn.Request.Header.Get("Authorization")
 
 	// done reading mux data, free up the request memory
