@@ -5,23 +5,31 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Launch Debug",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/src/ngrok/main/ngrokd/ngrokd.go",
             "env": {
-
+                "gopath": "${workspaceRoot}"
             },
+            "showLog": true,            
+            "program": "${workspaceRoot}/src/ngrok/main/ngrok/ngrok.go",
             "args": [
                 "start",
-                "t"
+                "t1"
+            ]
+            /**/
+            /*
+            "program": "${workspaceRoot}/src/ngrok/main/ngrokd/ngrokd.go",
+            "args": [
+                "domain=636318.mgrok.cn:80",
+                "httpAddr=:8081",
+                "httpsAddr=:8082"
             ],
-            "showLog": true,
-            "buildFlags": "build"
+            */
         }
     ]
 }
