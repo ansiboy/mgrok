@@ -16,6 +16,8 @@
 // assets/client/tls/snakeoilca.crt
 // DO NOT EDIT!
 
+// +build !release
+
 package assets
 
 import (
