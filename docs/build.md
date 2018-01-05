@@ -92,6 +92,10 @@ trust_host_root_certs: false
 
 现在再访问 http://pub.imququ.com:8081，访问到的已经是我本机 80 端口上的服务了。
 
+**注意**
+
+证书域名是支持泛域名解析的，也是就说，可以为 *.imququ.com
+
 ## 管理界面
 
 上面那张 ngrok 客户端运行界面截图中，有一个 Web Interface 地址，这是 ngrok 提供的监控界面。通过这个界面可以看到远端转发过来的 http 详情，包括完整的 request/response 信息，非常方便。
