@@ -53,7 +53,13 @@ type Tunnel struct {
 func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 	vhost := os.Getenv("VHOST")
 	if vhost == "" {
-		vhost = fmt.Sprintf("%s:%d", opts.domain, servingPort)
+		index := strings.Index(opts.domain, ":")
+		hasPort := index >= 0 //strings.Index(":", opts.domain) >= 0
+		if hasPort {
+			vhost = opts.domain
+		} else {
+			vhost = fmt.Sprintf("%s:%d", opts.domain, servingPort)
+		}
 	}
 
 	// Canonicalize virtual host by removing default port (e.g. :80 on HTTP)
