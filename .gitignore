@@ -3,8 +3,11 @@ bin/
 pkg/
 src/code.google.com
 src/github.com
+src/golang.org
 src/bitbucket.org
 src/launchpad.net
 src/gopkg.in
-src/ngrok/client/assets/
-src/ngrok/server/assets/
+src/ngrok/client/assets/assets_release.go
+src/ngrok/server/assets/assets_release.go
+src/ngrok/main/ngrok/debug
+src/ngrok/main/ngrokd/debug
