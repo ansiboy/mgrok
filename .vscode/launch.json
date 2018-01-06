@@ -18,18 +18,17 @@
             "showLog": true,            
             "program": "${workspaceRoot}/src/ngrok/main/ngrok/ngrok.go",
             "args": [
+                "-log=stdout",
                 "start",
-                "t1"
+                "maishu"
             ]
-            /**/
             /*
             "program": "${workspaceRoot}/src/ngrok/main/ngrokd/ngrokd.go",
             "args": [
-                "domain=636318.mgrok.cn:80",
+                "domain=t.mgrok.cn:80",
                 "httpAddr=:8081",
                 "httpsAddr=:8082"
-            ],
-            */
+            ],*/
         }
     ]
 }
