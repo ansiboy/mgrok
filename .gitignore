@@ -11,3 +11,6 @@ src/ngrok/client/assets
 src/ngrok/server/assets
 src/ngrok/main/ngrok/debug
 src/ngrok/main/ngrokd/debug
+node_modules
+cert
+package-lock.json
