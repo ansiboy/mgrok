@@ -119,7 +119,15 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 
 			// create the url
 			addr := t.listener.Addr().(*net.TCPAddr)
-			t.url = fmt.Sprintf("tcp://%s:%d", opts.domain, addr.Port)
+
+			index := strings.Index(opts.domain, ":")
+			hasPort := index >= 0 //strings.Index("
+			if hasPort {
+				domain := opts.domain[0:index]
+				t.url = fmt.Sprintf("tcp://%s:%d", domain, addr.Port)
+			} else {
+				t.url = fmt.Sprintf("tcp://%s:%d", opts.domain, addr.Port)
+			}
 
 			// register it
 			if err = tunnelRegistry.RegisterAndCache(t.url, t); err != nil {
