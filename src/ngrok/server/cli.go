@@ -5,14 +5,16 @@ import (
 )
 
 type Options struct {
-	httpAddr   string
-	httpsAddr  string
-	tunnelAddr string
-	domain     string
-	tlsCrt     string
-	tlsKey     string
-	logto      string
-	loglevel   string
+	httpAddr         string
+	httpsAddr        string
+	tunnelAddr       string
+	domain           string
+	tlsCrt           string
+	tlsKey           string
+	logto            string
+	loglevel         string
+	httpPulbishPort  string
+	httpsPulbishPort string
 }
 
 func parseArgs() *Options {
@@ -24,16 +26,20 @@ func parseArgs() *Options {
 	tlsKey := flag.String("tlsKey", "", "Path to a TLS key file")
 	logto := flag.String("log", "stdout", "Write log messages to this file. 'stdout' and 'none' have special meanings")
 	loglevel := flag.String("log-level", "DEBUG", "The level of messages to log. One of: DEBUG, INFO, WARNING, ERROR")
+	httpPulbishPort := flag.String("httpPulbishPort", "", "Public http port")
+	httpsPulbishPort := flag.String("httpsPulbishPort", "", "Public https port")
 	flag.Parse()
 
 	return &Options{
-		httpAddr:   *httpAddr,
-		httpsAddr:  *httpsAddr,
-		tunnelAddr: *tunnelAddr,
-		domain:     *domain,
-		tlsCrt:     *tlsCrt,
-		tlsKey:     *tlsKey,
-		logto:      *logto,
-		loglevel:   *loglevel,
+		httpAddr:         *httpAddr,
+		httpsAddr:        *httpsAddr,
+		tunnelAddr:       *tunnelAddr,
+		domain:           *domain,
+		tlsCrt:           *tlsCrt,
+		tlsKey:           *tlsKey,
+		logto:            *logto,
+		loglevel:         *loglevel,
+		httpPulbishPort:  *httpPulbishPort,
+		httpsPulbishPort: *httpsPulbishPort,
 	}
 }

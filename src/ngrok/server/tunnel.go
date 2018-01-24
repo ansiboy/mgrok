@@ -53,13 +53,13 @@ type Tunnel struct {
 func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 	vhost := os.Getenv("VHOST")
 	if vhost == "" {
-		index := strings.Index(opts.domain, ":")
-		hasPort := index >= 0 //strings.Index(":", opts.domain) >= 0
-		if hasPort {
-			vhost = opts.domain
-		} else {
-			vhost = fmt.Sprintf("%s:%d", opts.domain, servingPort)
-		}
+		// index := strings.Index(opts.domain, ":")
+		// hasPort := index >= 0 //strings.Index(":", opts.domain) >= 0
+		// if hasPort {
+		// 	vhost = opts.domain
+		// } else {
+		vhost = fmt.Sprintf("%s:%d", opts.domain, servingPort)
+		// }
 	}
 
 	// Canonicalize virtual host by removing default port (e.g. :80 on HTTP)
@@ -120,14 +120,14 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			// create the url
 			addr := t.listener.Addr().(*net.TCPAddr)
 
-			index := strings.Index(opts.domain, ":")
-			hasPort := index >= 0 //strings.Index("
-			if hasPort {
-				domain := opts.domain[0:index]
-				t.url = fmt.Sprintf("tcp://%s:%d", domain, addr.Port)
-			} else {
-				t.url = fmt.Sprintf("tcp://%s:%d", opts.domain, addr.Port)
-			}
+			// index := strings.Index(opts.domain, ":")
+			// hasPort := index >= 0 //strings.Index("
+			// if hasPort {
+			// 	domain := opts.domain[0:index]
+			t.url = fmt.Sprintf("tcp://%s:%d", domain, addr.Port)
+			// } else {
+			// 	t.url = fmt.Sprintf("tcp://%s:%d", opts.domain, addr.Port)
+			// }
 
 			// register it
 			if err = tunnelRegistry.RegisterAndCache(t.url, t); err != nil {
@@ -179,7 +179,14 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			return
 		}
 
-		if err = registerVhost(t, proto, l.Addr.(*net.TCPAddr).Port); err != nil {
+		servingPort := l.Addr.(*net.TCPAddr).Port
+		if proto == "http" && opts.httpPulbishPort != "" {
+			servingPort = strconv(opts.httpPulbishPort)
+		} else if proto == "https" && opts.httpsPulbishPort != "" {
+			servingPort = strconv(opts.httpsPulbishPort)
+		}
+
+		if err = registerVhost(t, proto, servingPort); err != nil {
 			return
 		}
 
