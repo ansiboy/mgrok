@@ -27,13 +27,13 @@
 **建立HTTP隧道**
 
 ```
-ngrok -subdomain pub -proto=http -config=ngrok.cfg 80
+ngrok -subdomain pub -proto=http 80
 ```
 
 **建立数据库隧道**
 
 ```
-ngrok -proto=tcp -config=ngrok.cfg 3306
+ngrok -proto=tcp 3306
 ```
 
 -----------------------------------
