@@ -31,7 +31,7 @@ func NewProxy(pxyConn conn.Conn, regPxy *msg.RegProxy) {
 	// fail gracefully if the proxy connection fails to register
 	defer func() {
 		if r := recover(); r != nil {
-			pxyConn.Warn("Failed with error: %v", r)
+			log.Warn("Failed with error: %v", r)
 			pxyConn.Close()
 		}
 	}()
@@ -40,7 +40,7 @@ func NewProxy(pxyConn conn.Conn, regPxy *msg.RegProxy) {
 	pxyConn.SetType("pxy")
 
 	// look up the control connection for this proxy
-	pxyConn.Info("Registering new proxy for %s", regPxy.ClientId)
+	log.Info("Registering new proxy for %s", regPxy.ClientId)
 	ctl := controlRegistry.Get(regPxy.ClientId)
 
 	if ctl == nil {
@@ -68,14 +68,14 @@ func tunnelListener(addr string) {
 			// don't crash on panics
 			defer func() {
 				if r := recover(); r != nil {
-					tunnelConn.Info("tunnelListener failed with error %v: %s", r, debug.Stack())
+					log.Info("tunnelListener failed with error %v: %s", r, debug.Stack())
 				}
 			}()
 
 			tunnelConn.SetReadDeadline(time.Now().Add(connReadTimeout))
 			var rawMsg msg.Message
 			if rawMsg, err = msg.ReadMsg(tunnelConn); err != nil {
-				tunnelConn.Warn("Failed to read message: %v", err)
+				log.Warn("Failed to read message: %v", err)
 				tunnelConn.Close()
 				return
 			}

@@ -17,7 +17,7 @@ import (
 
 type Conn interface {
 	net.Conn
-	log.Logger
+	// log.Logger
 	Id() string
 	SetType(string)
 	CloseRead() error
@@ -26,7 +26,7 @@ type Conn interface {
 type loggedConn struct {
 	tcp *net.TCPConn
 	net.Conn
-	log.Logger
+	// log.Logger
 	id  int32
 	typ string
 }
@@ -40,12 +40,12 @@ func wrapConn(conn net.Conn, typ string) *loggedConn {
 	switch c := conn.(type) {
 	case *vhost.HTTPConn:
 		wrapped := c.Conn.(*loggedConn)
-		return &loggedConn{wrapped.tcp, conn, wrapped.Logger, wrapped.id, wrapped.typ}
+		return &loggedConn{wrapped.tcp, conn, rand.Int31(), typ} //wrapped.Logger,
 	case *loggedConn:
 		return c
 	case *net.TCPConn:
-		wrapped := &loggedConn{c, conn, log.NewPrefixLogger(), rand.Int31(), typ}
-		wrapped.AddLogPrefix(wrapped.Id())
+		wrapped := &loggedConn{c, conn, rand.Int31(), typ} //log.NewPrefixLogger(),
+		// wrapped.AddLogPrefix(wrapped.Id())
 		return wrapped
 	}
 
@@ -77,7 +77,7 @@ func Listen(addr, typ string) (l *Listener, err error) {
 			// c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
 			// }
 
-			c.Info("New connection from %v", c.RemoteAddr())
+			log.Info("New connection from %v", c.RemoteAddr())
 			l.Conns <- c
 		}
 	}()
@@ -95,7 +95,7 @@ func Dial(addr, typ string) (conn *loggedConn, err error) {
 	}
 
 	conn = wrapConn(rawConn, typ)
-	conn.Debug("New connection to: %v", rawConn.RemoteAddr())
+	log.Debug("New connection to: %v", rawConn.RemoteAddr())
 
 	// if tlsCfg != nil {
 	// 	conn.StartTLS(tlsCfg)
@@ -168,7 +168,7 @@ func DialHttpProxy(proxyUrl, addr, typ string) (conn *loggedConn, err error) {
 
 func (c *loggedConn) Close() (err error) {
 	if err := c.Conn.Close(); err == nil {
-		c.Debug("Closing")
+		log.Debug("Closing")
 	}
 	return
 }
@@ -180,9 +180,9 @@ func (c *loggedConn) Id() string {
 func (c *loggedConn) SetType(typ string) {
 	oldId := c.Id()
 	c.typ = typ
-	c.ClearLogPrefixes()
-	c.AddLogPrefix(c.Id())
-	c.Info("Renamed connection %s", oldId)
+	// c.ClearLogPrefixes()
+	// c.AddLogPrefix(c.Id())
+	log.Info("Renamed connection %s", oldId)
 }
 
 func (c *loggedConn) CloseRead() error {
@@ -204,9 +204,9 @@ func Join(c Conn, c2 Conn) (int64, int64) {
 		var err error
 		*bytesCopied, err = io.Copy(to, from)
 		if err != nil {
-			from.Warn("Copied %d bytes to %s before failing with error %v", *bytesCopied, to.Id(), err)
+			log.Warn("Copied %d bytes to %s before failing with error %v", *bytesCopied, to.Id(), err)
 		} else {
-			from.Debug("Copied %d bytes to %s", *bytesCopied, to.Id())
+			log.Debug("Copied %d bytes to %s", *bytesCopied, to.Id())
 		}
 	}
 
@@ -214,7 +214,7 @@ func Join(c Conn, c2 Conn) (int64, int64) {
 	var fromBytes, toBytes int64
 	go pipe(c, c2, &fromBytes)
 	go pipe(c2, c, &toBytes)
-	c.Info("Joined with connection %s", c2.Id())
+	log.Info("Joined with connection %s", c2.Id())
 	wait.Wait()
 	return fromBytes, toBytes
 }

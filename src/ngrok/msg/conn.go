@@ -5,21 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"ngrok/conn"
+	"ngrok/log"
 )
 
 func readMsgShared(c conn.Conn) (buffer []byte, err error) {
-	c.Debug("Waiting to read message")
+	log.Debug("Waiting to read message")
 
 	var sz int64
 	err = binary.Read(c, binary.LittleEndian, &sz)
 	if err != nil {
 		return
 	}
-	c.Debug("Reading message with length: %d", sz)
+	log.Debug("Reading message with length: %d", sz)
 
 	buffer = make([]byte, sz)
 	n, err := c.Read(buffer)
-	c.Debug("Read message %s", buffer)
+	log.Debug("Read message %s", buffer)
 
 	if err != nil {
 		return
@@ -56,7 +57,7 @@ func WriteMsg(c conn.Conn, msg interface{}) (err error) {
 		return
 	}
 
-	c.Debug("Writing message: %s", string(buffer))
+	log.Debug("Writing message: %s", string(buffer))
 	err = binary.Write(c, binary.LittleEndian, int64(len(buffer)))
 
 	if err != nil {

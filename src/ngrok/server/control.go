@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"ngrok/conn"
+	"ngrok/log"
 	"ngrok/msg"
 	"ngrok/util"
 	"ngrok/version"
@@ -94,7 +95,7 @@ func NewControl(ctlConn conn.Conn, authMsg *msg.Auth) {
 
 	// set logging prefix
 	ctlConn.SetType("ctl")
-	ctlConn.AddLogPrefix(c.id)
+	// ctlConn.AddLogPrefix(c.id)
 
 	if authMsg.Version != version.Proto {
 		failAuth(fmt.Errorf("Incompatible versions. Server %s, client %s. Download a new version at http://ngrok.com", version.MajorMinor(), authMsg.Version))
@@ -131,7 +132,7 @@ func (c *Control) registerTunnel(rawTunnelReq *msg.ReqTunnel) {
 		tunnelReq := *rawTunnelReq
 		tunnelReq.Protocol = proto
 
-		c.conn.Debug("Registering new tunnel")
+		log.Debug("Registering new tunnel")
 		t, err := NewTunnel(&tunnelReq, c)
 		if err != nil {
 			c.out <- &msg.NewTunnel{Error: err.Error()}
@@ -161,7 +162,7 @@ func (c *Control) manager() {
 	// don't crash on panics
 	defer func() {
 		if err := recover(); err != nil {
-			c.conn.Info("Control::manager failed with error %v: %s", err, debug.Stack())
+			log.Info("Control::manager failed with error %v: %s", err, debug.Stack())
 		}
 	}()
 
@@ -179,7 +180,7 @@ func (c *Control) manager() {
 		select {
 		case <-reap.C:
 			if time.Since(c.lastPing) > pingTimeoutInterval {
-				c.conn.Info("Lost heartbeat")
+				log.Info("Lost heartbeat")
 				c.shutdown.Begin()
 			}
 
@@ -204,7 +205,7 @@ func (c *Control) manager() {
 func (c *Control) writer() {
 	defer func() {
 		if err := recover(); err != nil {
-			c.conn.Info("Control::writer failed with error %v: %s", err, debug.Stack())
+			log.Info("Control::writer failed with error %v: %s", err, debug.Stack())
 		}
 	}()
 
@@ -226,7 +227,7 @@ func (c *Control) writer() {
 func (c *Control) reader() {
 	defer func() {
 		if err := recover(); err != nil {
-			c.conn.Warn("Control::reader failed with error %v: %s", err, debug.Stack())
+			log.Warn("Control::reader failed with error %v: %s", err, debug.Stack())
 		}
 	}()
 
@@ -240,7 +241,7 @@ func (c *Control) reader() {
 	for {
 		if msg, err := msg.ReadMsg(c.conn); err != nil {
 			if err == io.EOF {
-				c.conn.Info("EOF")
+				log.Info("EOF")
 				return
 			} else {
 				panic(err)
@@ -255,7 +256,7 @@ func (c *Control) reader() {
 func (c *Control) stopper() {
 	defer func() {
 		if r := recover(); r != nil {
-			c.conn.Error("Failed to shut down control: %v", r)
+			log.Error("Failed to shut down control: %v", r)
 		}
 	}()
 
@@ -288,18 +289,18 @@ func (c *Control) stopper() {
 	}
 
 	c.shutdown.Complete()
-	c.conn.Info("Shutdown complete")
+	log.Info("Shutdown complete")
 }
 
 func (c *Control) RegisterProxy(conn conn.Conn) {
-	conn.AddLogPrefix(c.id)
+	// conn.AddLogPrefix(c.id)
 
 	conn.SetDeadline(time.Now().Add(proxyStaleDuration))
 	select {
 	case c.proxies <- conn:
-		conn.Info("Registered")
+		log.Info("Registered")
 	default:
-		conn.Info("Proxies buffer is full, discarding.")
+		log.Info("Proxies buffer is full, discarding.")
 		conn.Close()
 	}
 }
@@ -321,7 +322,7 @@ func (c *Control) GetProxy() (proxyConn conn.Conn, err error) {
 		}
 	default:
 		// no proxy available in the pool, ask for one over the control channel
-		c.conn.Debug("No proxy in pool, requesting proxy from control . . .")
+		log.Debug("No proxy in pool, requesting proxy from control . . .")
 		if err = util.PanicToError(func() { c.out <- &msg.ReqProxy{} }); err != nil {
 			return
 		}
@@ -345,7 +346,7 @@ func (c *Control) GetProxy() (proxyConn conn.Conn, err error) {
 // this can happen if the network drops out and the client reconnects
 // before the old tunnel has lost its heartbeat
 func (c *Control) Replaced(replacement *Control) {
-	c.conn.Info("Replaced by control: %s", replacement.conn.Id())
+	log.Info("Replaced by control: %s", replacement.conn.Id())
 
 	// set the control id to empty string so that when stopper()
 	// calls registry.Del it won't delete the replacement

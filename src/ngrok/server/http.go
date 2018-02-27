@@ -34,17 +34,12 @@ Bad Request
 
 // Listens for new http(s) connections from the public internet
 func startHttpListener(addr string) (listener *conn.Listener) {
-	// bind/listen for incoming connections
 	var err error
 	if listener, err = conn.Listen(addr, "pub"); err != nil {
 		panic(err)
 	}
 
 	proto := "http"
-	// if tlsCfg != nil {
-	// 	proto = "https"
-	// }
-
 	log.Info("Listening for public %s connections on %v", proto, listener.Addr.String())
 	go func() {
 		for conn := range listener.Conns {
@@ -61,7 +56,7 @@ func httpHandler(c conn.Conn, proto string) {
 	defer func() {
 		// recover from failures
 		if r := recover(); r != nil {
-			c.Warn("httpHandler failed with error %v", r)
+			log.Warn("httpHandler failed with error %v", r)
 		}
 	}()
 
@@ -71,7 +66,7 @@ func httpHandler(c conn.Conn, proto string) {
 	// multiplex by extracting the Host header, the vhost library
 	vhostConn, err := vhost.HTTP(c)
 	if err != nil {
-		c.Warn("Failed to read valid %s request: %v", proto, err)
+		log.Warn("Failed to read valid %s request: %v", proto, err)
 		c.Write([]byte(BadRequest))
 		return
 	}
@@ -91,10 +86,10 @@ func httpHandler(c conn.Conn, proto string) {
 	c = conn.Wrap(vhostConn, "pub")
 
 	// multiplex to find the right backend host
-	c.Debug("Found hostname %s in request", host)
+	log.Debug("Found hostname %s in request", host)
 	tunnel := tunnelRegistry.Get(fmt.Sprintf("%s://%s", proto, host))
 	if tunnel == nil {
-		c.Info("No tunnel found for hostname %s", host)
+		log.Info("No tunnel found for hostname %s", host)
 		c.Write([]byte(fmt.Sprintf(NotFound, len(host)+18, host)))
 		return
 	}
@@ -103,7 +98,7 @@ func httpHandler(c conn.Conn, proto string) {
 	// then fail the request with 401 Not Authorized and request the client reissue the
 	// request with basic authdeny the request
 	if tunnel.req.HttpAuth != "" && auth != tunnel.req.HttpAuth {
-		c.Info("Authentication failed: %s", auth)
+		log.Info("Authentication failed: %s", auth)
 		c.Write([]byte(NotAuthorized))
 		return
 	}

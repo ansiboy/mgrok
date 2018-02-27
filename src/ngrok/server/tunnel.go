@@ -113,7 +113,7 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 	case "tcp":
 		bindTcp := func(port int) error {
 			if t.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: port}); err != nil {
-				err = t.ctl.conn.Error("Error binding TCP listener: %v", err)
+				err = log.Error("Error binding TCP listener: %v", err)
 				return err
 			}
 
@@ -156,11 +156,11 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			portPart := parts[len(parts)-1]
 			port, err = strconv.Atoi(portPart)
 			if err != nil {
-				t.ctl.conn.Error("Failed to parse cached url port as integer: %s", portPart)
+				log.Error("Failed to parse cached url port as integer: %s", portPart)
 			} else {
 				// we have a valid, cached port, let's try to bind with it
 				if bindTcp(port) != nil {
-					t.ctl.conn.Warn("Failed to get custom port %d: %v, trying a random one", port, err)
+					log.Warn("Failed to get custom port %d: %v, trying a random one", port, err)
 				} else {
 					// success, we're done
 					return
@@ -201,7 +201,7 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 		m.HttpAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(m.HttpAuth))
 	}
 
-	t.AddLogPrefix(t.Id())
+	// t.AddLogPrefix(t.Id())
 	t.Info("Registered new tunnel on: %s", t.ctl.conn.Id())
 
 	metrics.OpenTunnel(t)
@@ -257,8 +257,8 @@ func (t *Tunnel) listenTcp(listener *net.TCPListener) {
 		}
 
 		conn := conn.Wrap(tcpConn, "pub")
-		conn.AddLogPrefix(t.Id())
-		conn.Info("New connection from %v", conn.RemoteAddr())
+		// conn.AddLogPrefix(t.Id())
+		log.Info("New connection from %v", conn.RemoteAddr())
 
 		go t.HandlePublicConnection(conn)
 	}
@@ -268,7 +268,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 	defer publicConn.Close()
 	defer func() {
 		if r := recover(); r != nil {
-			publicConn.Warn("HandlePublicConnection failed with error %v", r)
+			log.Warn("HandlePublicConnection failed with error %v", r)
 		}
 	}()
 
@@ -285,7 +285,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 		}
 		defer proxyConn.Close()
 		t.Info("Got proxy connection %s", proxyConn.Id())
-		proxyConn.AddLogPrefix(t.Id())
+		// proxyConn.AddLogPrefix(t.Id())
 
 		// tell the client we're going to start using this proxy connection
 		startPxyMsg := &msg.StartProxy{
@@ -294,7 +294,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 		}
 
 		if err = msg.WriteMsg(proxyConn, startPxyMsg); err != nil {
-			proxyConn.Warn("Failed to write StartProxyMessage: %v, attempt %d", err, i)
+			log.Warn("Failed to write StartProxyMessage: %v, attempt %d", err, i)
 			proxyConn.Close()
 		} else {
 			// success
@@ -304,7 +304,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 
 	if err != nil {
 		// give up
-		publicConn.Error("Too many failures starting proxy connection")
+		log.Error("Too many failures starting proxy connection")
 		return
 	}
 
