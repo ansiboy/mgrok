@@ -203,23 +203,10 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 }
 
 func defaultPath() string {
-	// user, err := user.Current()
-
-	// // user.Current() does not work on linux when cross compiling because
-	// // it requires CGO; use os.Getenv("HOME") hack until we compile natively
-	// homeDir := os.Getenv("HOME")
-	// if err != nil {
-	// 	log.Warn("Failed to get user's home directory: %s. Using $HOME: %s", err.Error(), homeDir)
-	// } else {
-	// 	homeDir = user.HomeDir
-	// }
-
-	// return path.Join(homeDir, ".ngrok")
-
 	filename, _ := osext.Executable()
 	dir := path.Dir(filename)
 
-	return path.Join(dir, ".ngrok")
+	return path.Join(dir, "ngrok.yaml")
 }
 
 func normalizeAddress(addr string, propName string) (string, error) {

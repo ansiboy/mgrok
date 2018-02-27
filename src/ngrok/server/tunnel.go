@@ -58,7 +58,7 @@ func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 		// if hasPort {
 		// 	vhost = opts.domain
 		// } else {
-		vhost = fmt.Sprintf("%s:%d", opts.domain, servingPort)
+		vhost = fmt.Sprintf("%s:%d", opts.Domain, servingPort)
 		// }
 	}
 
@@ -126,7 +126,7 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			// 	domain := opts.domain[0:index]
 			// t.url = fmt.Sprintf("tcp://%s:%d", domain, addr.Port)
 			// } else {
-			t.url = fmt.Sprintf("tcp://%s:%d", opts.domain, addr.Port)
+			t.url = fmt.Sprintf("tcp://%s:%d", opts.Domain, addr.Port)
 			// }
 
 			// register it
@@ -180,10 +180,10 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 		}
 
 		servingPort := l.Addr.(*net.TCPAddr).Port
-		if proto == "http" && opts.httpPulbishPort != "" {
-			servingPort, err = strconv.Atoi(opts.httpPulbishPort)
-		} else if proto == "https" && opts.httpsPulbishPort != "" {
-			servingPort, err = strconv.Atoi(opts.httpsPulbishPort)
+		if proto == "http" && opts.HttpPulbishPort != "" {
+			servingPort, err = strconv.Atoi(opts.HttpPulbishPort)
+		} else if proto == "https" && opts.HttpsPulbishPort != "" {
+			servingPort, err = strconv.Atoi(opts.HttpsPulbishPort)
 		}
 
 		if err = registerVhost(t, proto, servingPort); err != nil {

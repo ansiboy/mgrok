@@ -1,0 +1,12 @@
+server_addr: t.mgrok.cn:4443
+trust_host_root_certs: false
+inspect_addr: disabled
+tunnels:
+    t:                      #alinq.cn
+        proto:
+            http: 8019
+    maishu:
+        #hostname: t1.mgrok.cn
+        proto:
+            http: 127.0.0.1:8080
+    

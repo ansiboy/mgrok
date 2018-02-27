@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/tls"
+	"fmt"
 	"math/rand"
 	"ngrok/conn"
 	log "ngrok/log"
@@ -23,7 +24,7 @@ var (
 	controlRegistry *ControlRegistry
 
 	// XXX: kill these global variables - they're only used in tunnel.go for constructing forwarding URLs
-	opts      *Options
+	opts      *Configuration
 	listeners map[string]*conn.Listener
 )
 
@@ -100,10 +101,20 @@ func tunnelListener(addr string, tlsConfig *tls.Config) {
 
 func Main() {
 	// parse options
-	opts = parseArgs()
+	// opts = ParseArgs()
+
+	// read configuration file
+	config, err := LoadConfiguration("")
+	opts = config
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	// fmt.Printf("%s", config)
 
 	// init logging
-	log.LogTo(opts.logto, opts.loglevel)
+	log.LogTo(opts.LogTo, opts.LogLevel)
 
 	// seed random number generator
 	seed, err := util.RandomSeed()
@@ -121,21 +132,21 @@ func Main() {
 	listeners = make(map[string]*conn.Listener)
 
 	// load tls configuration
-	tlsConfig, err := LoadTLSConfig(opts.tlsCrt, opts.tlsKey)
+	tlsConfig, err := LoadTLSConfig(opts.TlsCrt, opts.TlsKey)
 	if err != nil {
 		panic(err)
 	}
 
 	// listen for http
-	if opts.httpAddr != "" {
-		listeners["http"] = startHttpListener(opts.httpAddr, nil)
+	if opts.HttpAddr != "" {
+		listeners["http"] = startHttpListener(opts.HttpAddr, nil)
 	}
 
 	// listen for https
-	if opts.httpsAddr != "" {
-		listeners["https"] = startHttpListener(opts.httpsAddr, tlsConfig)
+	if opts.HttpsAddr != "" {
+		listeners["https"] = startHttpListener(opts.HttpsAddr, tlsConfig)
 	}
 
 	// ngrok clients
-	tunnelListener(opts.tunnelAddr, tlsConfig)
+	tunnelListener(opts.TunnelAddr, tlsConfig)
 }
