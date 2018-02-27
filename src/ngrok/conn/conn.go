@@ -75,8 +75,9 @@ func Listen(addr, typ string, tlsCfg *tls.Config) (l *Listener, err error) {
 
 			c := wrapConn(rawConn, typ)
 			if tlsCfg != nil {
-				c.Conn = tls.Server(c.Conn, tlsCfg)
+				c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
 			}
+
 			c.Info("New connection from %v", c.RemoteAddr())
 			l.Conns <- c
 		}
@@ -163,7 +164,7 @@ func DialHttpProxy(proxyUrl, addr, typ string, tlsCfg *tls.Config) (conn *logged
 }
 
 func (c *loggedConn) StartTLS(tlsCfg *tls.Config) {
-	c.Conn = tls.Client(c.Conn, tlsCfg)
+	c.Conn = c.Conn // tls.Client(c.Conn, tlsCfg)
 }
 
 func (c *loggedConn) Close() (err error) {

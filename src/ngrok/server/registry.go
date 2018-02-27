@@ -151,6 +151,7 @@ func (r *TunnelRegistry) RegisterRepeat(urlFn func() string, t *Tunnel) (string,
 func (r *TunnelRegistry) Del(url string) {
 	r.Lock()
 	defer r.Unlock()
+	r.Debug("Delete tunnel named %s.", url)
 	delete(r.tunnels, url)
 }
 
