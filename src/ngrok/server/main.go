@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"math/rand"
+	"net"
 	"ngrok/conn"
 	log "ngrok/log"
 	"ngrok/msg"
@@ -27,7 +28,7 @@ var (
 	listeners map[string]*conn.Listener
 )
 
-func NewProxy(pxyConn conn.Conn, regPxy *msg.RegProxy) {
+func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 	// fail gracefully if the proxy connection fails to register
 	defer func() {
 		if r := recover(); r != nil {
@@ -37,7 +38,7 @@ func NewProxy(pxyConn conn.Conn, regPxy *msg.RegProxy) {
 	}()
 
 	// set logging prefix
-	pxyConn.SetType("pxy")
+	// pxyConn.SetType("pxy")
 
 	// look up the control connection for this proxy
 	log.Info("Registering new proxy for %s", regPxy.ClientId)
@@ -64,7 +65,7 @@ func tunnelListener(addr string) {
 
 	log.Info("Listening for control and proxy connections on %s", listener.Addr.String())
 	for c := range listener.Conns {
-		go func(tunnelConn conn.Conn) {
+		go func(tunnelConn net.Conn) {
 			// don't crash on panics
 			defer func() {
 				if r := recover(); r != nil {

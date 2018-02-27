@@ -1,10 +1,8 @@
 package proto
 
-import (
-	"ngrok/conn"
-)
+import "net"
 
 type Protocol interface {
 	GetName() string
-	WrapConn(conn.Conn, interface{}) conn.Conn
+	WrapConn(net.Conn, interface{}) net.Conn
 }

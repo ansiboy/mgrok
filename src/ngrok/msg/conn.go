@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"ngrok/conn"
+	"net"
 	"ngrok/log"
 )
 
-func readMsgShared(c conn.Conn) (buffer []byte, err error) {
+func readMsgShared(c net.Conn) (buffer []byte, err error) {
 	log.Debug("Waiting to read message")
 
 	var sz int64
@@ -34,7 +34,7 @@ func readMsgShared(c conn.Conn) (buffer []byte, err error) {
 	return
 }
 
-func ReadMsg(c conn.Conn) (msg Message, err error) {
+func ReadMsg(c net.Conn) (msg Message, err error) {
 	buffer, err := readMsgShared(c)
 	if err != nil {
 		return
@@ -43,7 +43,7 @@ func ReadMsg(c conn.Conn) (msg Message, err error) {
 	return Unpack(buffer)
 }
 
-func ReadMsgInto(c conn.Conn, msg Message) (err error) {
+func ReadMsgInto(c net.Conn, msg Message) (err error) {
 	buffer, err := readMsgShared(c)
 	if err != nil {
 		return
@@ -51,7 +51,7 @@ func ReadMsgInto(c conn.Conn, msg Message) (err error) {
 	return UnpackInto(buffer, msg)
 }
 
-func WriteMsg(c conn.Conn, msg interface{}) (err error) {
+func WriteMsg(c net.Conn, msg interface{}) (err error) {
 	buffer, err := Pack(msg)
 	if err != nil {
 		return

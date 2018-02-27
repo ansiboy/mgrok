@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	gometrics "github.com/rcrowley/go-metrics"
 	"io/ioutil"
+	"net"
 	"net/http"
-	"ngrok/conn"
 	"ngrok/log"
 	"os"
 	"time"
+
+	gometrics "github.com/rcrowley/go-metrics"
 )
 
 var metrics Metrics
@@ -27,8 +28,8 @@ func init() {
 
 type Metrics interface {
 	log.Logger
-	OpenConnection(*Tunnel, conn.Conn)
-	CloseConnection(*Tunnel, conn.Conn, time.Time, int64, int64)
+	OpenConnection(*Tunnel, net.Conn)
+	CloseConnection(*Tunnel, net.Conn, time.Time, int64, int64)
 	OpenTunnel(*Tunnel)
 	CloseTunnel(*Tunnel)
 }
@@ -116,11 +117,11 @@ func (m *LocalMetrics) OpenTunnel(t *Tunnel) {
 func (m *LocalMetrics) CloseTunnel(t *Tunnel) {
 }
 
-func (m *LocalMetrics) OpenConnection(t *Tunnel, c conn.Conn) {
+func (m *LocalMetrics) OpenConnection(t *Tunnel, c net.Conn) {
 	m.connMeter.Mark(1)
 }
 
-func (m *LocalMetrics) CloseConnection(t *Tunnel, c conn.Conn, start time.Time, bytesIn, bytesOut int64) {
+func (m *LocalMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, bytesIn, bytesOut int64) {
 	m.bytesInCount.Inc(bytesIn)
 	m.bytesOutCount.Inc(bytesOut)
 }
@@ -249,10 +250,10 @@ func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (
 	return
 }
 
-func (k *KeenIoMetrics) OpenConnection(t *Tunnel, c conn.Conn) {
+func (k *KeenIoMetrics) OpenConnection(t *Tunnel, c net.Conn) {
 }
 
-func (k *KeenIoMetrics) CloseConnection(t *Tunnel, c conn.Conn, start time.Time, in, out int64) {
+func (k *KeenIoMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, in, out int64) {
 	event := struct {
 		Keen               KeenStruct `json:"keen"`
 		OS                 string

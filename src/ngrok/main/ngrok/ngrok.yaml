@@ -2,9 +2,10 @@ server_addr: t.mgrok.cn:4443
 trust_host_root_certs: false
 inspect_addr: disabled
 tunnels:
-    t:                      #alinq.cn
+    ssh:                      #alinq.cn
+        remote_port: 40022
         proto:
-            http: 8019
+            tcp: maishu.alinq.cn:40022
     maishu:
         #hostname: t1.mgrok.cn
         proto:

@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"io"
-	"ngrok/conn"
+	"net"
 	"ngrok/log"
 	"ngrok/msg"
 	"ngrok/util"
@@ -26,7 +26,7 @@ type Control struct {
 	auth *msg.Auth
 
 	// actual connection
-	conn conn.Conn
+	conn net.Conn
 
 	// put a message in this channel to send it over
 	// conn to the client
@@ -43,7 +43,7 @@ type Control struct {
 	tunnels []*Tunnel
 
 	// proxy connections
-	proxies chan conn.Conn
+	proxies chan net.Conn
 
 	// identifier
 	id string
@@ -61,7 +61,7 @@ type Control struct {
 	shutdown *util.Shutdown
 }
 
-func NewControl(ctlConn conn.Conn, authMsg *msg.Auth) {
+func NewControl(ctlConn net.Conn, authMsg *msg.Auth) {
 	var err error
 
 	// create the object
@@ -70,7 +70,7 @@ func NewControl(ctlConn conn.Conn, authMsg *msg.Auth) {
 		conn:            ctlConn,
 		out:             make(chan msg.Message),
 		in:              make(chan msg.Message),
-		proxies:         make(chan conn.Conn, 10),
+		proxies:         make(chan net.Conn, 10),
 		lastPing:        time.Now(),
 		writerShutdown:  util.NewShutdown(),
 		readerShutdown:  util.NewShutdown(),
@@ -94,7 +94,7 @@ func NewControl(ctlConn conn.Conn, authMsg *msg.Auth) {
 	}
 
 	// set logging prefix
-	ctlConn.SetType("ctl")
+	// ctlConn.SetType("ctl")
 	// ctlConn.AddLogPrefix(c.id)
 
 	if authMsg.Version != version.Proto {
@@ -292,7 +292,7 @@ func (c *Control) stopper() {
 	log.Info("Shutdown complete")
 }
 
-func (c *Control) RegisterProxy(conn conn.Conn) {
+func (c *Control) RegisterProxy(conn net.Conn) {
 	// conn.AddLogPrefix(c.id)
 
 	conn.SetDeadline(time.Now().Add(proxyStaleDuration))
@@ -310,7 +310,7 @@ func (c *Control) RegisterProxy(conn conn.Conn) {
 // and wait until it is available
 // Returns an error if we couldn't get a proxy because it took too long
 // or the tunnel is closing
-func (c *Control) GetProxy() (proxyConn conn.Conn, err error) {
+func (c *Control) GetProxy() (proxyConn net.Conn, err error) {
 	var ok bool
 
 	// get a proxy connection from the pool
@@ -346,7 +346,7 @@ func (c *Control) GetProxy() (proxyConn conn.Conn, err error) {
 // this can happen if the network drops out and the client reconnects
 // before the old tunnel has lost its heartbeat
 func (c *Control) Replaced(replacement *Control) {
-	log.Info("Replaced by control: %s", replacement.conn.Id())
+	log.Info("Replaced by control: %s", "another") //replacement.conn.Id())
 
 	// set the control id to empty string so that when stopper()
 	// calls registry.Del it won't delete the replacement

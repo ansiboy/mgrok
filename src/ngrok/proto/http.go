@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"ngrok/conn"
+	"ngrok/log"
 	"ngrok/util"
 	"strings"
 	"sync"
@@ -61,7 +62,7 @@ func extractBody(r io.Reader) ([]byte, io.ReadCloser, error) {
 
 func (h *Http) GetName() string { return "http" }
 
-func (h *Http) WrapConn(c conn.Conn, ctx interface{}) conn.Conn {
+func (h *Http) WrapConn(c net.Conn, ctx interface{}) net.Conn {
 	tee := conn.NewTee(c)
 	lastTxn := make(chan *HttpTxn)
 	go h.readRequests(tee, lastTxn, ctx)
@@ -85,7 +86,7 @@ func (h *Http) readRequests(tee *conn.Tee, lastTxn chan *HttpTxn, connCtx interf
 
 		h.reqMeter.Mark(1)
 		if err != nil {
-			tee.Warn("Failed to extract request body: %v", err)
+			log.Warn("Failed to extract request body: %v", err)
 		}
 
 		// golang's ReadRequest/DumpRequestOut is broken. Fix up the request so it works later
@@ -97,7 +98,7 @@ func (h *Http) readRequests(tee *conn.Tee, lastTxn chan *HttpTxn, connCtx interf
 		if req.Body != nil {
 			txn.Req.BodyBytes, txn.Req.Body, err = extractBody(req.Body)
 			if err != nil {
-				tee.Warn("Failed to extract request body: %v", err)
+				log.Warn("Failed to extract request body: %v", err)
 			}
 		}
 
@@ -112,7 +113,7 @@ func (h *Http) readResponses(tee *conn.Tee, lastTxn chan *HttpTxn) {
 		txn.Duration = time.Since(txn.Start)
 		h.reqTimer.Update(txn.Duration)
 		if err != nil {
-			tee.Warn("Error reading response from server: %v", err)
+			log.Warn("Error reading response from server: %v", err)
 			// no more responses to be read, we're done
 			break
 		}
@@ -125,7 +126,7 @@ func (h *Http) readResponses(tee *conn.Tee, lastTxn chan *HttpTxn) {
 		if resp.Body != nil {
 			txn.Resp.BodyBytes, txn.Resp.Body, err = extractBody(resp.Body)
 			if err != nil {
-				tee.Warn("Failed to extract response body: %v", err)
+				log.Warn("Failed to extract response body: %v", err)
 			}
 		}
 
@@ -133,7 +134,7 @@ func (h *Http) readResponses(tee *conn.Tee, lastTxn chan *HttpTxn) {
 
 		// XXX: remove web socket shim in favor of a real websocket protocol analyzer
 		if txn.Req.Header.Get("Upgrade") == "websocket" {
-			tee.Info("Upgrading to websocket")
+			log.Info("Upgrading to websocket")
 			var wg sync.WaitGroup
 
 			// shim for websockets

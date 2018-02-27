@@ -164,7 +164,7 @@ func (c ClientModel) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
 
 // mvc.Model interface
 func (c *ClientModel) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
-	var localConn conn.Conn
+	var localConn net.Conn
 	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
 	if err != nil {
 		c.Warn("Failed to open private leg to %s: %v", tunnel.LocalAddr, err)
@@ -218,7 +218,7 @@ func (c *ClientModel) control() {
 
 	// establish control channel
 	var (
-		ctlConn conn.Conn
+		ctlConn net.Conn
 		err     error
 	)
 	if c.proxyUrl == "" {
@@ -332,7 +332,7 @@ func (c *ClientModel) control() {
 			c.update()
 
 		default:
-			ctlConn.Warn("Ignoring unknown control message %v ", m)
+			log.Warn("Ignoring unknown control message %v ", m)
 		}
 	}
 }
@@ -340,7 +340,7 @@ func (c *ClientModel) control() {
 // Establishes and manages a tunnel proxy connection with the server
 func (c *ClientModel) proxy() {
 	var (
-		remoteConn conn.Conn
+		remoteConn net.Conn
 		err        error
 	)
 
@@ -358,20 +358,20 @@ func (c *ClientModel) proxy() {
 
 	err = msg.WriteMsg(remoteConn, &msg.RegProxy{ClientId: c.id})
 	if err != nil {
-		remoteConn.Error("Failed to write RegProxy: %v", err)
+		log.Error("Failed to write RegProxy: %v", err)
 		return
 	}
 
 	// wait for the server to ack our register
 	var startPxy msg.StartProxy
 	if err = msg.ReadMsgInto(remoteConn, &startPxy); err != nil {
-		remoteConn.Error("Server failed to write StartProxy: %v", err)
+		log.Error("Server failed to write StartProxy: %v", err)
 		return
 	}
 
 	tunnel, ok := c.tunnels[startPxy.Url]
 	if !ok {
-		remoteConn.Error("Couldn't find tunnel for proxy: %s", startPxy.Url)
+		log.Error("Couldn't find tunnel for proxy: %s", startPxy.Url)
 		return
 	}
 
@@ -379,7 +379,7 @@ func (c *ClientModel) proxy() {
 	start := time.Now()
 	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
 	if err != nil {
-		remoteConn.Warn("Failed to open private leg %s: %v", tunnel.LocalAddr, err)
+		log.Warn("Failed to open private leg %s: %v", tunnel.LocalAddr, err)
 
 		if tunnel.Protocol.GetName() == "http" {
 			// try to be helpful when you're in HTTP mode and a human might see the output
@@ -410,7 +410,7 @@ Content-Length: %d
 }
 
 // Hearbeating to ensure our connection ngrokd is still live
-func (c *ClientModel) heartbeat(lastPongAddr *int64, conn conn.Conn) {
+func (c *ClientModel) heartbeat(lastPongAddr *int64, conn net.Conn) {
 	lastPing := time.Unix(atomic.LoadInt64(lastPongAddr)-1, 0)
 	ping := time.NewTicker(pingInterval)
 	pongCheck := time.NewTicker(time.Second)
@@ -437,7 +437,7 @@ func (c *ClientModel) heartbeat(lastPongAddr *int64, conn conn.Conn) {
 		case <-ping.C:
 			err := msg.WriteMsg(conn, &msg.Ping{})
 			if err != nil {
-				conn.Debug("Got error %v when writing PingMsg", err)
+				log.Debug("Got error %v when writing PingMsg", err)
 				return
 			}
 			lastPing = time.Now()

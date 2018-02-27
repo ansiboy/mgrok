@@ -202,7 +202,7 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 	}
 
 	// t.AddLogPrefix(t.Id())
-	t.Info("Registered new tunnel on: %s", t.ctl.conn.Id())
+	t.Info("Registered new tunnel on: %s", "another") // t.ctl.conn.Id())
 
 	metrics.OpenTunnel(t)
 	return
@@ -256,7 +256,7 @@ func (t *Tunnel) listenTcp(listener *net.TCPListener) {
 			continue
 		}
 
-		conn := conn.Wrap(tcpConn, "pub")
+		conn := tcpConn //conn.Wrap(tcpConn, "pub")
 		// conn.AddLogPrefix(t.Id())
 		log.Info("New connection from %v", conn.RemoteAddr())
 
@@ -264,7 +264,7 @@ func (t *Tunnel) listenTcp(listener *net.TCPListener) {
 	}
 }
 
-func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
+func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
 	defer publicConn.Close()
 	defer func() {
 		if r := recover(); r != nil {
@@ -275,7 +275,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 	startTime := time.Now()
 	metrics.OpenConnection(t, publicConn)
 
-	var proxyConn conn.Conn
+	var proxyConn net.Conn
 	var err error
 	for i := 0; i < (2 * proxyMaxPoolSize); i++ {
 		// get a proxy connection
@@ -284,7 +284,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn conn.Conn) {
 			return
 		}
 		defer proxyConn.Close()
-		t.Info("Got proxy connection %s", proxyConn.Id())
+		t.Info("Got proxy connection %s", "another") //proxyConn.Id())
 		// proxyConn.AddLogPrefix(t.Id())
 
 		// tell the client we're going to start using this proxy connection

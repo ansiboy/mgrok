@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"net"
 
 	vhost "github.com/inconshreveable/go-vhost"
 	//"net"
@@ -51,7 +52,7 @@ func startHttpListener(addr string) (listener *conn.Listener) {
 }
 
 // Handles a new http connection from the public internet
-func httpHandler(c conn.Conn, proto string) {
+func httpHandler(c net.Conn, proto string) {
 	defer c.Close()
 	defer func() {
 		// recover from failures
@@ -83,7 +84,7 @@ func httpHandler(c conn.Conn, proto string) {
 	vhostConn.Free()
 
 	// We need to read from the vhost conn now since it mucked around reading the stream
-	c = conn.Wrap(vhostConn, "pub")
+	c = vhostConn //conn.Wrap(vhostConn, "pub")
 
 	// multiplex to find the right backend host
 	log.Debug("Found hostname %s in request", host)

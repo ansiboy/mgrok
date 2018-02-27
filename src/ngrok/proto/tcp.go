@@ -1,8 +1,6 @@
 package proto
 
-import (
-	"ngrok/conn"
-)
+import "net"
 
 type Tcp struct{}
 
@@ -12,6 +10,6 @@ func NewTcp() *Tcp {
 
 func (h *Tcp) GetName() string { return "tcp" }
 
-func (h *Tcp) WrapConn(c conn.Conn, ctx interface{}) conn.Conn {
+func (h *Tcp) WrapConn(c net.Conn, ctx interface{}) net.Conn {
 	return c
 }

@@ -3,9 +3,10 @@ package conn
 import (
 	"bufio"
 	"io"
+	"net"
 )
 
-// conn.Tee is a wraps a conn.Conn
+// conn.Tee is a wraps a net.Conn
 // causing all writes/reads to be tee'd just
 // like the unix command such that all data that
 // is read and written to the connection through its
@@ -32,10 +33,10 @@ type Tee struct {
 		rd *io.PipeReader
 		wr *io.PipeWriter
 	}
-	Conn
+	net.Conn
 }
 
-func NewTee(conn Conn) *Tee {
+func NewTee(conn net.Conn) *Tee {
 	c := &Tee{
 		rd:   nil,
 		wr:   nil,
