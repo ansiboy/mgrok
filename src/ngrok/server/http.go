@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 
 	vhost "github.com/inconshreveable/go-vhost"
@@ -34,17 +33,17 @@ Bad Request
 )
 
 // Listens for new http(s) connections from the public internet
-func startHttpListener(addr string, tlsCfg *tls.Config) (listener *conn.Listener) {
+func startHttpListener(addr string) (listener *conn.Listener) {
 	// bind/listen for incoming connections
 	var err error
-	if listener, err = conn.Listen(addr, "pub", tlsCfg); err != nil {
+	if listener, err = conn.Listen(addr, "pub"); err != nil {
 		panic(err)
 	}
 
 	proto := "http"
-	if tlsCfg != nil {
-		proto = "https"
-	}
+	// if tlsCfg != nil {
+	// 	proto = "https"
+	// }
 
 	log.Info("Listening for public %s connections on %v", proto, listener.Addr.String())
 	go func() {

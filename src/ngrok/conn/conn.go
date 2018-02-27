@@ -53,7 +53,7 @@ func wrapConn(conn net.Conn, typ string) *loggedConn {
 	return nil
 }
 
-func Listen(addr, typ string, tlsCfg *tls.Config) (l *Listener, err error) {
+func Listen(addr, typ string) (l *Listener, err error) {
 	// listen for incoming connections
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -74,9 +74,9 @@ func Listen(addr, typ string, tlsCfg *tls.Config) (l *Listener, err error) {
 			}
 
 			c := wrapConn(rawConn, typ)
-			if tlsCfg != nil {
-				c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
-			}
+			// if tlsCfg != nil {
+			c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
+			// }
 
 			c.Info("New connection from %v", c.RemoteAddr())
 			l.Conns <- c

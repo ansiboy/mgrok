@@ -182,9 +182,10 @@ func NewTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 		servingPort := l.Addr.(*net.TCPAddr).Port
 		if proto == "http" && opts.HttpPulbishPort != "" {
 			servingPort, err = strconv.Atoi(opts.HttpPulbishPort)
-		} else if proto == "https" && opts.HttpsPulbishPort != "" {
-			servingPort, err = strconv.Atoi(opts.HttpsPulbishPort)
 		}
+		//  else if proto == "https" && opts.HttpsPulbishPort != "" {
+		// 	servingPort, err = strconv.Atoi(opts.HttpsPulbishPort)
+		// }
 
 		if err = registerVhost(t, proto, servingPort); err != nil {
 			return
