@@ -1,0 +1,5 @@
+{
+    "go.autocompleteUnimportedPackages": true,
+    "go.buildTags": "debug",
+    "go.gopath": "/Volumes/data/projects/mgrok"
+}
