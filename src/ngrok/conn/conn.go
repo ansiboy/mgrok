@@ -2,7 +2,6 @@ package conn
 
 import (
 	"bufio"
-	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -75,7 +74,7 @@ func Listen(addr, typ string) (l *Listener, err error) {
 
 			c := wrapConn(rawConn, typ)
 			// if tlsCfg != nil {
-			c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
+			// c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
 			// }
 
 			c.Info("New connection from %v", c.RemoteAddr())
@@ -89,7 +88,7 @@ func Wrap(conn net.Conn, typ string) *loggedConn {
 	return wrapConn(conn, typ)
 }
 
-func Dial(addr, typ string, tlsCfg *tls.Config) (conn *loggedConn, err error) {
+func Dial(addr, typ string) (conn *loggedConn, err error) {
 	var rawConn net.Conn
 	if rawConn, err = net.Dial("tcp", addr); err != nil {
 		return
@@ -98,14 +97,14 @@ func Dial(addr, typ string, tlsCfg *tls.Config) (conn *loggedConn, err error) {
 	conn = wrapConn(rawConn, typ)
 	conn.Debug("New connection to: %v", rawConn.RemoteAddr())
 
-	if tlsCfg != nil {
-		conn.StartTLS(tlsCfg)
-	}
+	// if tlsCfg != nil {
+	// 	conn.StartTLS(tlsCfg)
+	// }
 
 	return
 }
 
-func DialHttpProxy(proxyUrl, addr, typ string, tlsCfg *tls.Config) (conn *loggedConn, err error) {
+func DialHttpProxy(proxyUrl, addr, typ string) (conn *loggedConn, err error) {
 	// parse the proxy address
 	var parsedUrl *url.URL
 	if parsedUrl, err = url.Parse(proxyUrl); err != nil {
@@ -117,19 +116,19 @@ func DialHttpProxy(proxyUrl, addr, typ string, tlsCfg *tls.Config) (conn *logged
 		proxyAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(parsedUrl.User.String()))
 	}
 
-	var proxyTlsConfig *tls.Config
-	switch parsedUrl.Scheme {
-	case "http":
-		proxyTlsConfig = nil
-	case "https":
-		proxyTlsConfig = new(tls.Config)
-	default:
-		err = fmt.Errorf("Proxy URL scheme must be http or https, got: %s", parsedUrl.Scheme)
-		return
-	}
+	// var proxyTlsConfig *tls.Config
+	// switch parsedUrl.Scheme {
+	// case "http":
+	// 	proxyTlsConfig = nil
+	// case "https":
+	// 	proxyTlsConfig = new(tls.Config)
+	// default:
+	// 	err = fmt.Errorf("Proxy URL scheme must be http or https, got: %s", parsedUrl.Scheme)
+	// 	return
+	// }
 
 	// dial the proxy
-	if conn, err = Dial(parsedUrl.Host, typ, proxyTlsConfig); err != nil {
+	if conn, err = Dial(parsedUrl.Host, typ); err != nil {
 		return
 	}
 
@@ -158,14 +157,14 @@ func DialHttpProxy(proxyUrl, addr, typ string, tlsCfg *tls.Config) (conn *logged
 	}
 
 	// upgrade to TLS
-	conn.StartTLS(tlsCfg)
+	// conn.StartTLS(tlsCfg)
 
 	return
 }
 
-func (c *loggedConn) StartTLS(tlsCfg *tls.Config) {
-	c.Conn = c.Conn // tls.Client(c.Conn, tlsCfg)
-}
+// func (c *loggedConn) StartTLS(tlsCfg *tls.Config) {
+// 	c.Conn = c.Conn // tls.Client(c.Conn, tlsCfg)
+// }
 
 func (c *loggedConn) Close() (err error) {
 	if err := c.Conn.Close(); err == nil {

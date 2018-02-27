@@ -1,9 +1,7 @@
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
-	metrics "github.com/rcrowley/go-metrics"
 	"io/ioutil"
 	"math"
 	"net"
@@ -18,6 +16,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	metrics "github.com/rcrowley/go-metrics"
 )
 
 const (
@@ -49,15 +49,15 @@ type ClientModel struct {
 	serverAddr    string
 	proxyUrl      string
 	authToken     string
-	tlsConfig     *tls.Config
-	tunnelConfig  map[string]*TunnelConfiguration
-	configPath    string
+	// tlsConfig     *tls.Config
+	tunnelConfig map[string]*TunnelConfiguration
+	configPath   string
 }
 
 func newClientModel(config *Configuration, ctl mvc.Controller) *ClientModel {
 	protoMap := make(map[string]proto.Protocol)
 	protoMap["http"] = proto.NewHttp()
-	protoMap["https"] = protoMap["http"]
+	// protoMap["https"] = protoMap["http"]
 	protoMap["tcp"] = proto.NewTcp()
 	protocols := []proto.Protocol{protoMap["http"], protoMap["tcp"]}
 
@@ -102,20 +102,20 @@ func newClientModel(config *Configuration, ctl mvc.Controller) *ClientModel {
 	}
 
 	// configure TLS
-	if config.TrustHostRootCerts {
-		m.Info("Trusting host's root certificates")
-		m.tlsConfig = &tls.Config{}
-	} else {
-		m.Info("Trusting root CAs: %v", rootCrtPaths)
-		var err error
-		if m.tlsConfig, err = LoadTLSConfig(rootCrtPaths); err != nil {
-			panic(err)
-		}
-	}
+	// if config.TrustHostRootCerts {
+	// 	m.Info("Trusting host's root certificates")
+	// 	m.tlsConfig = &tls.Config{}
+	// } else {
+	// 	m.Info("Trusting root CAs: %v", rootCrtPaths)
+	// 	var err error
+	// 	if m.tlsConfig, err = LoadTLSConfig(rootCrtPaths); err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 
 	// configure TLS SNI
-	m.tlsConfig.ServerName = serverName(m.serverAddr)
-	m.tlsConfig.InsecureSkipVerify = useInsecureSkipVerify()
+	// m.tlsConfig.ServerName = serverName(m.serverAddr)
+	// m.tlsConfig.InsecureSkipVerify = useInsecureSkipVerify()
 
 	return m
 }
@@ -165,7 +165,7 @@ func (c ClientModel) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
 // mvc.Model interface
 func (c *ClientModel) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
 	var localConn conn.Conn
-	localConn, err := conn.Dial(tunnel.LocalAddr, "prv", nil)
+	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
 	if err != nil {
 		c.Warn("Failed to open private leg to %s: %v", tunnel.LocalAddr, err)
 		return
@@ -223,9 +223,9 @@ func (c *ClientModel) control() {
 	)
 	if c.proxyUrl == "" {
 		// simple non-proxied case, just connect to the server
-		ctlConn, err = conn.Dial(c.serverAddr, "ctl", c.tlsConfig)
+		ctlConn, err = conn.Dial(c.serverAddr, "ctl")
 	} else {
-		ctlConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "ctl", c.tlsConfig)
+		ctlConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "ctl")
 	}
 	if err != nil {
 		panic(err)
@@ -345,9 +345,9 @@ func (c *ClientModel) proxy() {
 	)
 
 	if c.proxyUrl == "" {
-		remoteConn, err = conn.Dial(c.serverAddr, "pxy", c.tlsConfig)
+		remoteConn, err = conn.Dial(c.serverAddr, "pxy")
 	} else {
-		remoteConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "pxy", c.tlsConfig)
+		remoteConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "pxy")
 	}
 
 	if err != nil {
@@ -377,7 +377,7 @@ func (c *ClientModel) proxy() {
 
 	// start up the private connection
 	start := time.Now()
-	localConn, err := conn.Dial(tunnel.LocalAddr, "prv", nil)
+	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
 	if err != nil {
 		remoteConn.Warn("Failed to open private leg %s: %v", tunnel.LocalAddr, err)
 
