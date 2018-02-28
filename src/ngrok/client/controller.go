@@ -3,8 +3,6 @@ package client
 import (
 	"ngrok/client/mvc"
 	"ngrok/log"
-	"ngrok/util"
-	"sync"
 )
 
 type command interface{}
@@ -28,7 +26,7 @@ type Controller struct {
 	log.Logger
 
 	// the model sends updates through this broadcast channel
-	updates *util.Broadcast
+	// updates *util.Broadcast
 
 	// the model
 	model *ClientModel
@@ -37,47 +35,47 @@ type Controller struct {
 	// views []mvc.View
 
 	// internal structure to issue commands to the controller
-	cmds chan command
+	// cmds chan command
 
 	// internal structure to synchronize access to State object
-	state chan *ClientModel
+	// state chan *ClientModel
 
 	// options
-	config *Configuration
+	// config *Configuration
 }
 
 // public interface
 func NewController() *Controller {
 	ctl := &Controller{
-		Logger:  log.NewPrefixLogger("controller"),
-		updates: util.NewBroadcast(),
-		cmds:    make(chan command),
+		Logger: log.NewPrefixLogger("controller"),
+		// updates: util.NewBroadcast(),
+		// cmds:    make(chan command),
 		// views:   make([]mvc.View, 0),
-		state: make(chan *ClientModel),
+		// state: make(chan *ClientModel),
 	}
 
 	return ctl
 }
 
-func (ctl *Controller) State() *ClientModel {
-	return <-ctl.state
-}
+// func (ctl *Controller) State() *ClientModel {
+// 	return <-ctl.state
+// }
 
-func (ctl *Controller) Update(state *ClientModel) {
-	ctl.updates.In() <- state
-}
+// func (ctl *Controller) Update(state *ClientModel) {
+// 	ctl.updates.In() <- state
+// }
 
-func (ctl *Controller) Updates() *util.Broadcast {
-	return ctl.updates
-}
+// func (ctl *Controller) Updates() *util.Broadcast {
+// 	return ctl.updates
+// }
 
-func (ctl *Controller) Shutdown(message string) {
-	ctl.cmds <- cmdQuit{message: message}
-}
+// func (ctl *Controller) Shutdown(message string) {
+// 	ctl.cmds <- cmdQuit{message: message}
+// }
 
-func (ctl *Controller) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
-	ctl.cmds <- cmdPlayRequest{tunnel: tunnel, payload: payload}
-}
+// func (ctl *Controller) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
+// 	ctl.cmds <- cmdPlayRequest{tunnel: tunnel, payload: payload}
+// }
 
 // func (ctl *Controller) Go(fn func()) {
 // 	go func() {
@@ -94,6 +92,7 @@ func (ctl *Controller) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
 // }
 
 // private functions
+/*
 func (ctl *Controller) doShutdown() {
 	ctl.Info("Shutting down")
 
@@ -122,14 +121,15 @@ func (ctl *Controller) doShutdown() {
 
 	wg.Wait()
 }
+*/
 
 // func (ctl *Controller) AddView(v mvc.View) {
 // 	ctl.views = append(ctl.views, v)
 // }
 
-func (ctl *Controller) GetWebInspectAddr() string {
-	return ctl.config.InspectAddr
-}
+// func (ctl *Controller) GetWebInspectAddr() string {
+// 	return ctl.config.InspectAddr
+// }
 
 func (ctl *Controller) SetupModel(config *Configuration) *ClientModel {
 	model := newClientModel(config, ctl)
@@ -143,80 +143,14 @@ func (ctl *Controller) SetupModel(config *Configuration) *ClientModel {
 
 func (ctl *Controller) Run(config *Configuration) {
 	// Save the configuration
-	ctl.config = config
 
-	var model *ClientModel
+	// ctl.config = config
+	ctl.SetupModel(config)
 
-	// if ctl.model == nil {
-	model = ctl.SetupModel(config)
-	// } else {
-	// 	model = ctl.model.(*ClientModel)
-	// }
-
-	// init the model
-	var state *ClientModel = model
-
-	// init web ui
-	// var webView *web.WebView
-	// if config.InspectAddr != "disabled" {
-	// 	webView = web.NewWebView(ctl, config.InspectAddr)
-	// 	ctl.AddView(webView)
-	// }
-
-	// init term ui
-	// var termView *term.TermView
-	// if config.LogTo != "stdout" {
-	// 	termView = term.NewTermView(ctl)
-	// 	ctl.AddView(termView)
-	// }
-
-	// for _, protocol := range model.GetProtocols() {
-	// 	switch p := protocol.(type) {
-	// 	case *proto.Http:
-	// 		if termView != nil {
-	// 			ctl.AddView(termView.NewHttpView(p))
-	// 		}
-
-	// 		if webView != nil {
-	// 			ctl.AddView(webView.NewHttpView(p))
-	// 		}
-	// 	default:
-	// 	}
-	// }
-
-	// ctl.Go(func() { autoUpdate(state, config.AuthToken) })
-	// ctl.Go(ctl.model.Run)
+	done := make(chan *ClientModel)
 
 	go ctl.model.Run()
 
-	ctl.state <- state
-
-	// updates := ctl.updates.Reg()
-	// defer ctl.updates.UnReg(updates)
-
-	// done := make(chan int)
-	// for {
-	// 	select {
-	// case obj := <-ctl.cmds:
-	// 	switch cmd := obj.(type) {
-	// 	case cmdQuit:
-	// 		msg := cmd.message
-	// 		go func() {
-	// 			ctl.doShutdown()
-	// 			fmt.Println(msg)
-	// 			done <- 1
-	// 		}()
-
-	// 	case cmdPlayRequest:
-	// 		ctl.Go(func() { ctl.model.PlayRequest(cmd.tunnel, cmd.payload) })
-	// 	}
-
-	// case obj := <-updates:
-	// 	state = obj.(*ClientModel)
-
-	// 	case ctl.state <- state:
-	// 	case <-done:
-	// 		return
-	// 	}
-	// }
+	// ctl.state <- ctl.model
+	done <- ctl.model
 }

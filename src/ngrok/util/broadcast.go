@@ -4,7 +4,7 @@ type Broadcast struct {
 	listeners []chan interface{}
 	reg       chan (chan interface{})
 	unreg     chan (chan interface{})
-	in        chan interface{}
+	// in        chan interface{}
 }
 
 func NewBroadcast() *Broadcast {
@@ -12,7 +12,7 @@ func NewBroadcast() *Broadcast {
 		listeners: make([]chan interface{}, 0),
 		reg:       make(chan (chan interface{})),
 		unreg:     make(chan (chan interface{})),
-		in:        make(chan interface{}),
+		// in:        make(chan interface{}),
 	}
 
 	go func() {
@@ -33,10 +33,10 @@ func NewBroadcast() *Broadcast {
 			case l := <-b.reg:
 				b.listeners = append(b.listeners, l)
 
-			case item := <-b.in:
-				for _, l := range b.listeners {
-					l <- item
-				}
+				// case item := <-b.in:
+				// 	for _, l := range b.listeners {
+				// 		l <- item
+				// 	}
 			}
 		}
 	}()
@@ -44,9 +44,9 @@ func NewBroadcast() *Broadcast {
 	return b
 }
 
-func (b *Broadcast) In() chan interface{} {
-	return b.in
-}
+// func (b *Broadcast) In() chan interface{} {
+// 	return b.in
+// }
 
 func (b *Broadcast) Reg() chan interface{} {
 	listener := make(chan interface{})

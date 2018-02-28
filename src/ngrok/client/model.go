@@ -180,7 +180,7 @@ func (c *ClientModel) Shutdown() {
 }
 
 func (c *ClientModel) update() {
-	c.ctl.Update(c)
+	// c.ctl.Update(c)
 }
 
 func (c *ClientModel) Run() {
@@ -253,7 +253,8 @@ func (c *ClientModel) control() {
 
 	if authResp.Error != "" {
 		emsg := fmt.Sprintf("Failed to authenticate to server: %s", authResp.Error)
-		c.ctl.Shutdown(emsg)
+		// c.ctl.Shutdown(emsg)
+		fmt.Println(emsg)
 		return
 	}
 
@@ -319,7 +320,7 @@ func (c *ClientModel) control() {
 			if m.Error != "" {
 				emsg := fmt.Sprintf("Server failed to allocate tunnel: %s", m.Error)
 				c.Error(emsg)
-				c.ctl.Shutdown(emsg)
+				// c.ctl.Shutdown(emsg)
 				continue
 			}
 

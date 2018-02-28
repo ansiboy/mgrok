@@ -103,7 +103,7 @@ func (h *Http) readRequests(tee *conn.Tee, lastTxn chan *HttpTxn, connCtx interf
 		}
 
 		lastTxn <- txn
-		h.Txns.In() <- txn
+		// h.Txns.In() <- txn
 	}
 }
 
@@ -130,7 +130,7 @@ func (h *Http) readResponses(tee *conn.Tee, lastTxn chan *HttpTxn) {
 			}
 		}
 
-		h.Txns.In() <- txn
+		// h.Txns.In() <- txn
 
 		// XXX: remove web socket shim in favor of a real websocket protocol analyzer
 		if txn.Req.Header.Get("Upgrade") == "websocket" {
