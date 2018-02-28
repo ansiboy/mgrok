@@ -1,5 +1,5 @@
 package mvc
 
-type View interface {
-	Shutdown()
-}
+// type View interface {
+// 	Shutdown()
+// }

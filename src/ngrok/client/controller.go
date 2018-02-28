@@ -34,7 +34,7 @@ type Controller struct {
 	model *ClientModel
 
 	// the views
-	views []mvc.View
+	// views []mvc.View
 
 	// internal structure to issue commands to the controller
 	cmds chan command
@@ -52,8 +52,8 @@ func NewController() *Controller {
 		Logger:  log.NewPrefixLogger("controller"),
 		updates: util.NewBroadcast(),
 		cmds:    make(chan command),
-		views:   make([]mvc.View, 0),
-		state:   make(chan *ClientModel),
+		// views:   make([]mvc.View, 0),
+		state: make(chan *ClientModel),
 	}
 
 	return ctl
@@ -100,15 +100,15 @@ func (ctl *Controller) doShutdown() {
 	var wg sync.WaitGroup
 
 	// wait for all of the views, plus the model
-	wg.Add(len(ctl.views) + 1)
+	// wg.Add(len(ctl.views) + 1)
 
-	for _, v := range ctl.views {
-		vClosure := v
-		ctl.Go(func() {
-			vClosure.Shutdown()
-			wg.Done()
-		})
-	}
+	// for _, v := range ctl.views {
+	// 	vClosure := v
+	// 	ctl.Go(func() {
+	// 		vClosure.Shutdown()
+	// 		wg.Done()
+	// 	})
+	// }
 
 	ctl.Go(func() {
 		ctl.model.Shutdown()
@@ -118,9 +118,9 @@ func (ctl *Controller) doShutdown() {
 	wg.Wait()
 }
 
-func (ctl *Controller) AddView(v mvc.View) {
-	ctl.views = append(ctl.views, v)
-}
+// func (ctl *Controller) AddView(v mvc.View) {
+// 	ctl.views = append(ctl.views, v)
+// }
 
 func (ctl *Controller) GetWebInspectAddr() string {
 	return ctl.config.InspectAddr
