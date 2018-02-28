@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math"
 	"net"
 	"ngrok/client/mvc"
@@ -162,20 +161,20 @@ func (c ClientModel) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
 	c.update()
 }
 
-// mvc.Model interface
-func (c *ClientModel) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
-	var localConn net.Conn
-	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
-	if err != nil {
-		c.Warn("Failed to open private leg to %s: %v", tunnel.LocalAddr, err)
-		return
-	}
+// // mvc.Model interface
+// func (c *ClientModel) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
+// 	var localConn net.Conn
+// 	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
+// 	if err != nil {
+// 		c.Warn("Failed to open private leg to %s: %v", tunnel.LocalAddr, err)
+// 		return
+// 	}
 
-	defer localConn.Close()
-	localConn = tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: "127.0.0.1"})
-	localConn.Write(payload)
-	ioutil.ReadAll(localConn)
-}
+// 	defer localConn.Close()
+// 	localConn = tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: "127.0.0.1"})
+// 	localConn.Write(payload)
+// 	ioutil.ReadAll(localConn)
+// }
 
 func (c *ClientModel) Shutdown() {
 }
