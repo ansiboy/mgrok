@@ -21,7 +21,8 @@
             "args": [
                 "-log=stdout",
                 "start",
-                "maishu"
+                "maishu",
+                "ssh"
             ]
             /**/
             /*            

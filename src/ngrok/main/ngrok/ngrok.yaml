@@ -5,9 +5,9 @@ tunnels:
     ssh:                      #alinq.cn
         remote_port: 40022
         proto:
-            tcp: maishu.alinq.cn:40022
+            tcp: service4.alinq.cn:22
     maishu:
-        #hostname: t1.mgrok.cn
+        # hostname: maishu.t.mgrok.cn
         proto:
             http: 127.0.0.1:8080
     

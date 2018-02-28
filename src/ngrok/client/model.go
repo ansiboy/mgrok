@@ -45,7 +45,7 @@ type ClientModel struct {
 	connStatus    mvc.ConnStatus
 	protoMap      map[string]proto.Protocol
 	protocols     []proto.Protocol
-	ctl           mvc.Controller
+	ctl           *Controller
 	serverAddr    string
 	proxyUrl      string
 	authToken     string
@@ -54,7 +54,7 @@ type ClientModel struct {
 	configPath   string
 }
 
-func newClientModel(config *Configuration, ctl mvc.Controller) *ClientModel {
+func newClientModel(config *Configuration, ctl *Controller) *ClientModel {
 	protoMap := make(map[string]proto.Protocol)
 	protoMap["http"] = proto.NewHttp()
 	// protoMap["https"] = protoMap["http"]

@@ -1,9 +1,9 @@
 package mvc
 
-type Model interface {
-	Run()
+// type Model interface {
+// 	Run()
 
-	Shutdown()
+// 	Shutdown()
 
-	PlayRequest(tunnel Tunnel, payload []byte)
-}
+// 	PlayRequest(tunnel Tunnel, payload []byte)
+// }

@@ -1,9 +1,7 @@
 package client
 
 import (
-	"fmt"
 	"ngrok/client/mvc"
-	"ngrok/client/views/web"
 	"ngrok/log"
 	"ngrok/util"
 	"sync"
@@ -33,7 +31,7 @@ type Controller struct {
 	updates *util.Broadcast
 
 	// the model
-	model mvc.Model
+	model *ClientModel
 
 	// the views
 	views []mvc.View
@@ -135,7 +133,7 @@ func (ctl *Controller) SetupModel(config *Configuration) *ClientModel {
 }
 
 func (ctl *Controller) GetModel() *ClientModel {
-	return ctl.model.(*ClientModel)
+	return ctl.model //ctl.model.(*ClientModel)
 }
 
 func (ctl *Controller) Run(config *Configuration) {
@@ -144,21 +142,21 @@ func (ctl *Controller) Run(config *Configuration) {
 
 	var model *ClientModel
 
-	if ctl.model == nil {
-		model = ctl.SetupModel(config)
-	} else {
-		model = ctl.model.(*ClientModel)
-	}
+	// if ctl.model == nil {
+	model = ctl.SetupModel(config)
+	// } else {
+	// 	model = ctl.model.(*ClientModel)
+	// }
 
 	// init the model
 	var state mvc.State = model
 
 	// init web ui
-	var webView *web.WebView
-	if config.InspectAddr != "disabled" {
-		webView = web.NewWebView(ctl, config.InspectAddr)
-		ctl.AddView(webView)
-	}
+	// var webView *web.WebView
+	// if config.InspectAddr != "disabled" {
+	// 	webView = web.NewWebView(ctl, config.InspectAddr)
+	// 	ctl.AddView(webView)
+	// }
 
 	// init term ui
 	// var termView *term.TermView
@@ -181,8 +179,10 @@ func (ctl *Controller) Run(config *Configuration) {
 	// 	}
 	// }
 
-	ctl.Go(func() { autoUpdate(state, config.AuthToken) })
-	ctl.Go(ctl.model.Run)
+	// ctl.Go(func() { autoUpdate(state, config.AuthToken) })
+	// ctl.Go(ctl.model.Run)
+
+	go ctl.model.Run()
 
 	updates := ctl.updates.Reg()
 	defer ctl.updates.UnReg(updates)
@@ -190,19 +190,19 @@ func (ctl *Controller) Run(config *Configuration) {
 	done := make(chan int)
 	for {
 		select {
-		case obj := <-ctl.cmds:
-			switch cmd := obj.(type) {
-			case cmdQuit:
-				msg := cmd.message
-				go func() {
-					ctl.doShutdown()
-					fmt.Println(msg)
-					done <- 1
-				}()
+		// case obj := <-ctl.cmds:
+		// 	switch cmd := obj.(type) {
+		// 	case cmdQuit:
+		// 		msg := cmd.message
+		// 		go func() {
+		// 			ctl.doShutdown()
+		// 			fmt.Println(msg)
+		// 			done <- 1
+		// 		}()
 
-			case cmdPlayRequest:
-				ctl.Go(func() { ctl.model.PlayRequest(cmd.tunnel, cmd.payload) })
-			}
+		// 	case cmdPlayRequest:
+		// 		ctl.Go(func() { ctl.model.PlayRequest(cmd.tunnel, cmd.payload) })
+		// 	}
 
 		case obj := <-updates:
 			state = obj.(mvc.State)
