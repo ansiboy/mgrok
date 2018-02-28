@@ -40,7 +40,7 @@ type Controller struct {
 	cmds chan command
 
 	// internal structure to synchronize access to State object
-	state chan mvc.State
+	state chan *ClientModel
 
 	// options
 	config *Configuration
@@ -53,17 +53,17 @@ func NewController() *Controller {
 		updates: util.NewBroadcast(),
 		cmds:    make(chan command),
 		views:   make([]mvc.View, 0),
-		state:   make(chan mvc.State),
+		state:   make(chan *ClientModel),
 	}
 
 	return ctl
 }
 
-func (ctl *Controller) State() mvc.State {
+func (ctl *Controller) State() *ClientModel {
 	return <-ctl.state
 }
 
-func (ctl *Controller) Update(state mvc.State) {
+func (ctl *Controller) Update(state *ClientModel) {
 	ctl.updates.In() <- state
 }
 
@@ -149,7 +149,7 @@ func (ctl *Controller) Run(config *Configuration) {
 	// }
 
 	// init the model
-	var state mvc.State = model
+	var state *ClientModel = model
 
 	// init web ui
 	// var webView *web.WebView
@@ -205,7 +205,7 @@ func (ctl *Controller) Run(config *Configuration) {
 		// 	}
 
 		case obj := <-updates:
-			state = obj.(mvc.State)
+			state = obj.(*ClientModel)
 
 		case ctl.state <- state:
 		case <-done:
