@@ -1,6 +1,6 @@
 package proto
 
-type Protocol interface {
-	GetName() string
-	// WrapConn(net.Conn, interface{}) net.Conn
-}
+// type Protocol interface {
+// 	GetName() string
+// 	// WrapConn(net.Conn, interface{}) net.Conn
+// }

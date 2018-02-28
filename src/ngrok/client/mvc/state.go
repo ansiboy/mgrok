@@ -24,10 +24,10 @@ type Tunnel struct {
 	Type      string
 }
 
-type ConnectionContext struct {
-	Tunnel     Tunnel
-	ClientAddr string
-}
+// type ConnectionContext struct {
+// 	Tunnel     Tunnel
+// 	ClientAddr string
+// }
 
 // type State interface {
 // 	GetClientVersion() string

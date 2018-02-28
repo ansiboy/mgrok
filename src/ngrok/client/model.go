@@ -8,7 +8,6 @@ import (
 	"ngrok/conn"
 	"ngrok/log"
 	"ngrok/msg"
-	"ngrok/proto"
 	"ngrok/util"
 	"ngrok/version"
 	"runtime"
@@ -43,7 +42,7 @@ type ClientModel struct {
 	updateStatus  mvc.UpdateStatus
 	connStatus    mvc.ConnStatus
 	// protoMap      map[string]proto.Protocol
-	protocols []proto.Protocol
+	// protocols []proto.Protocol
 	// ctl           *Controller
 	serverAddr string
 	proxyUrl   string
