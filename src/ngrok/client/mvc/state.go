@@ -1,9 +1,5 @@
 package mvc
 
-import (
-	"ngrok/proto"
-)
-
 type UpdateStatus int
 
 const (
@@ -23,8 +19,9 @@ const (
 
 type Tunnel struct {
 	PublicUrl string
-	Protocol  proto.Protocol
+	// Protocol  proto.Protocol
 	LocalAddr string
+	Type      string
 }
 
 type ConnectionContext struct {

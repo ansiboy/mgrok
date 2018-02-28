@@ -47,5 +47,6 @@ func Main() {
 	}
 	rand.Seed(seed)
 
-	NewController().Run(config)
+	model := newClientModel(config)
+	model.Run()
 }

@@ -42,23 +42,23 @@ type ClientModel struct {
 	metrics       *ClientMetrics
 	updateStatus  mvc.UpdateStatus
 	connStatus    mvc.ConnStatus
-	protoMap      map[string]proto.Protocol
-	protocols     []proto.Protocol
-	ctl           *Controller
-	serverAddr    string
-	proxyUrl      string
-	authToken     string
+	// protoMap      map[string]proto.Protocol
+	protocols []proto.Protocol
+	// ctl           *Controller
+	serverAddr string
+	proxyUrl   string
+	authToken  string
 	// tlsConfig     *tls.Config
 	tunnelConfig map[string]*TunnelConfiguration
 	configPath   string
 }
 
-func newClientModel(config *Configuration, ctl *Controller) *ClientModel {
-	protoMap := make(map[string]proto.Protocol)
-	protoMap["http"] = proto.NewHttp()
+func newClientModel(config *Configuration) *ClientModel {
+	// protoMap := make(map[string]proto.Protocol)
+	// protoMap["http"] = proto.NewHttp()
 	// protoMap["https"] = protoMap["http"]
-	protoMap["tcp"] = proto.NewTcp()
-	protocols := []proto.Protocol{protoMap["http"], protoMap["tcp"]}
+	// protoMap["tcp"] = proto.NewTcp()
+	// protocols := []proto.Protocol{protoMap["http"], protoMap["tcp"]}
 
 	m := &ClientModel{
 		Logger: log.NewPrefixLogger("client"),
@@ -82,16 +82,16 @@ func newClientModel(config *Configuration, ctl *Controller) *ClientModel {
 		metrics: NewClientMetrics(),
 
 		// protocols
-		protoMap: protoMap,
+		// protoMap: protoMap,
 
 		// protocol list
-		protocols: protocols,
+		// protocols: protocols,
 
 		// open tunnels
 		tunnels: make(map[string]mvc.Tunnel),
 
 		// controller
-		ctl: ctl,
+		// ctl: ctl,
 
 		// tunnel configuration
 		tunnelConfig: config.Tunnels,
@@ -132,9 +132,9 @@ func serverName(addr string) string {
 }
 
 // mvc.State interface
-func (c ClientModel) GetProtocols() []proto.Protocol { return c.protocols }
-func (c ClientModel) GetClientVersion() string       { return version.MajorMinor() }
-func (c ClientModel) GetServerVersion() string       { return c.serverVersion }
+// func (c ClientModel) GetProtocols() []proto.Protocol { return c.protocols }
+func (c ClientModel) GetClientVersion() string { return version.MajorMinor() }
+func (c ClientModel) GetServerVersion() string { return c.serverVersion }
 func (c ClientModel) GetTunnels() []mvc.Tunnel {
 	tunnels := make([]mvc.Tunnel, 0)
 	for _, t := range c.tunnels {
@@ -327,7 +327,8 @@ func (c *ClientModel) control() {
 			tunnel := mvc.Tunnel{
 				PublicUrl: m.Url,
 				LocalAddr: reqIdToTunnelConfig[m.ReqId].Protocols[m.Protocol],
-				Protocol:  c.protoMap[m.Protocol],
+				// Protocol:  c.protoMap[m.Protocol],
+				Type: m.Protocol,
 			}
 
 			c.tunnels[tunnel.PublicUrl] = tunnel
@@ -385,7 +386,7 @@ func (c *ClientModel) proxy() {
 	if err != nil {
 		log.Warn("Failed to open private leg %s: %v", tunnel.LocalAddr, err)
 
-		if tunnel.Protocol.GetName() == "http" {
+		if tunnel.Type == "http" { //tunnel.Protocol.GetName() == "http"
 			// try to be helpful when you're in HTTP mode and a human might see the output
 			badGatewayBody := fmt.Sprintf(BadGateway, tunnel.PublicUrl, tunnel.LocalAddr, tunnel.LocalAddr)
 			remoteConn.Write([]byte(fmt.Sprintf(`HTTP/1.0 502 Bad Gateway
@@ -403,7 +404,7 @@ Content-Length: %d
 	m.connMeter.Mark(1)
 	c.update()
 	m.connTimer.Time(func() {
-		localConn := tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
+		localConn := localConn //tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
 		bytesIn, bytesOut := conn.Join(localConn, remoteConn)
 		m.bytesIn.Update(bytesIn)
 		m.bytesOut.Update(bytesOut)
