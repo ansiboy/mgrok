@@ -79,19 +79,19 @@ func (ctl *Controller) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
 	ctl.cmds <- cmdPlayRequest{tunnel: tunnel, payload: payload}
 }
 
-func (ctl *Controller) Go(fn func()) {
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				err := util.MakePanicTrace(r)
-				ctl.Error(err)
-				ctl.Shutdown(err)
-			}
-		}()
+// func (ctl *Controller) Go(fn func()) {
+// 	go func() {
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				err := util.MakePanicTrace(r)
+// 				ctl.Error(err)
+// 				ctl.Shutdown(err)
+// 			}
+// 		}()
 
-		fn()
-	}()
-}
+// 		fn()
+// 	}()
+// }
 
 // private functions
 func (ctl *Controller) doShutdown() {
@@ -110,10 +110,15 @@ func (ctl *Controller) doShutdown() {
 	// 	})
 	// }
 
-	ctl.Go(func() {
+	// ctl.Go(func() {
+	// 	ctl.model.Shutdown()
+	// 	wg.Done()
+	// })
+
+	go func() {
 		ctl.model.Shutdown()
 		wg.Done()
-	})
+	}()
 
 	wg.Wait()
 }
@@ -132,9 +137,9 @@ func (ctl *Controller) SetupModel(config *Configuration) *ClientModel {
 	return model
 }
 
-func (ctl *Controller) GetModel() *ClientModel {
-	return ctl.model //ctl.model.(*ClientModel)
-}
+// func (ctl *Controller) GetModel() *ClientModel {
+// 	return ctl.model //ctl.model.(*ClientModel)
+// }
 
 func (ctl *Controller) Run(config *Configuration) {
 	// Save the configuration
@@ -184,32 +189,34 @@ func (ctl *Controller) Run(config *Configuration) {
 
 	go ctl.model.Run()
 
-	updates := ctl.updates.Reg()
-	defer ctl.updates.UnReg(updates)
+	ctl.state <- state
 
-	done := make(chan int)
-	for {
-		select {
-		// case obj := <-ctl.cmds:
-		// 	switch cmd := obj.(type) {
-		// 	case cmdQuit:
-		// 		msg := cmd.message
-		// 		go func() {
-		// 			ctl.doShutdown()
-		// 			fmt.Println(msg)
-		// 			done <- 1
-		// 		}()
+	// updates := ctl.updates.Reg()
+	// defer ctl.updates.UnReg(updates)
 
-		// 	case cmdPlayRequest:
-		// 		ctl.Go(func() { ctl.model.PlayRequest(cmd.tunnel, cmd.payload) })
-		// 	}
+	// done := make(chan int)
+	// for {
+	// 	select {
+	// case obj := <-ctl.cmds:
+	// 	switch cmd := obj.(type) {
+	// 	case cmdQuit:
+	// 		msg := cmd.message
+	// 		go func() {
+	// 			ctl.doShutdown()
+	// 			fmt.Println(msg)
+	// 			done <- 1
+	// 		}()
 
-		case obj := <-updates:
-			state = obj.(*ClientModel)
+	// 	case cmdPlayRequest:
+	// 		ctl.Go(func() { ctl.model.PlayRequest(cmd.tunnel, cmd.payload) })
+	// 	}
 
-		case ctl.state <- state:
-		case <-done:
-			return
-		}
-	}
+	// case obj := <-updates:
+	// 	state = obj.(*ClientModel)
+
+	// 	case ctl.state <- state:
+	// 	case <-done:
+	// 		return
+	// 	}
+	// }
 }

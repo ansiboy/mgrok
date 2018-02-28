@@ -295,7 +295,10 @@ func (c *ClientModel) control() {
 
 	// start the heartbeat
 	lastPong := time.Now().UnixNano()
-	c.ctl.Go(func() { c.heartbeat(&lastPong, ctlConn) })
+	// c.ctl.Go(func() { c.heartbeat(&lastPong, ctlConn) })
+	go func() {
+		c.heartbeat(&lastPong, ctlConn)
+	}()
 
 	// main control loop
 	for {
@@ -306,7 +309,8 @@ func (c *ClientModel) control() {
 
 		switch m := rawMsg.(type) {
 		case *msg.ReqProxy:
-			c.ctl.Go(c.proxy)
+			// c.ctl.Go(c.proxy)
+			go c.proxy()
 
 		case *msg.Pong:
 			atomic.StoreInt64(&lastPong, time.Now().UnixNano())
