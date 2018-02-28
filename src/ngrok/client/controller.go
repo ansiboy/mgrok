@@ -3,10 +3,8 @@ package client
 import (
 	"fmt"
 	"ngrok/client/mvc"
-	"ngrok/client/views/term"
 	"ngrok/client/views/web"
 	"ngrok/log"
-	"ngrok/proto"
 	"ngrok/util"
 	"sync"
 )
@@ -163,25 +161,25 @@ func (ctl *Controller) Run(config *Configuration) {
 	}
 
 	// init term ui
-	var termView *term.TermView
-	if config.LogTo != "stdout" {
-		termView = term.NewTermView(ctl)
-		ctl.AddView(termView)
-	}
+	// var termView *term.TermView
+	// if config.LogTo != "stdout" {
+	// 	termView = term.NewTermView(ctl)
+	// 	ctl.AddView(termView)
+	// }
 
-	for _, protocol := range model.GetProtocols() {
-		switch p := protocol.(type) {
-		case *proto.Http:
-			if termView != nil {
-				ctl.AddView(termView.NewHttpView(p))
-			}
+	// for _, protocol := range model.GetProtocols() {
+	// 	switch p := protocol.(type) {
+	// 	case *proto.Http:
+	// 		if termView != nil {
+	// 			ctl.AddView(termView.NewHttpView(p))
+	// 		}
 
-			if webView != nil {
-				ctl.AddView(webView.NewHttpView(p))
-			}
-		default:
-		}
-	}
+	// 		if webView != nil {
+	// 			ctl.AddView(webView.NewHttpView(p))
+	// 		}
+	// 	default:
+	// 	}
+	// }
 
 	ctl.Go(func() { autoUpdate(state, config.AuthToken) })
 	ctl.Go(ctl.model.Run)

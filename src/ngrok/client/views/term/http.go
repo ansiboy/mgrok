@@ -1,12 +1,9 @@
 package term
 
 import (
-	termbox "github.com/nsf/termbox-go"
-	"ngrok/client/mvc"
-	"ngrok/log"
-	"ngrok/proto"
-	"ngrok/util"
 	"unicode/utf8"
+
+	termbox "github.com/nsf/termbox-go"
 )
 
 const (
@@ -14,15 +11,15 @@ const (
 	pathMaxLength = 25
 )
 
-type HttpView struct {
-	log.Logger
-	*area
+// type HttpView struct {
+// 	log.Logger
+// 	*area
 
-	httpProto    *proto.Http
-	HttpRequests *util.Ring
-	shutdown     chan int
-	termView     *TermView
-}
+// 	httpProto    *proto.Http
+// 	HttpRequests *util.Ring
+// 	shutdown     chan int
+// 	termView     *TermView
+// }
 
 func colorFor(status string) termbox.Attribute {
 	switch status[0] {
@@ -37,52 +34,52 @@ func colorFor(status string) termbox.Attribute {
 	return termbox.ColorWhite
 }
 
-func newTermHttpView(ctl mvc.Controller, termView *TermView, proto *proto.Http, x, y int) *HttpView {
-	v := &HttpView{
-		httpProto:    proto,
-		HttpRequests: util.NewRing(size),
-		area:         NewArea(x, y, 70, size+5),
-		shutdown:     make(chan int),
-		termView:     termView,
-		Logger:       log.NewPrefixLogger("view", "term", "http"),
-	}
-	ctl.Go(v.Run)
-	return v
-}
+// func newTermHttpView(ctl mvc.Controller, termView *TermView, proto *proto.Http, x, y int) *HttpView {
+// 	v := &HttpView{
+// 		httpProto:    proto,
+// 		HttpRequests: util.NewRing(size),
+// 		area:         NewArea(x, y, 70, size+5),
+// 		shutdown:     make(chan int),
+// 		termView:     termView,
+// 		Logger:       log.NewPrefixLogger("view", "term", "http"),
+// 	}
+// 	ctl.Go(v.Run)
+// 	return v
+// }
 
-func (v *HttpView) Run() {
-	updates := v.httpProto.Txns.Reg()
+// func (v *HttpView) Run() {
+// 	updates := v.httpProto.Txns.Reg()
 
-	for {
-		select {
-		case txn := <-updates:
-			v.Debug("Got HTTP update")
-			if txn.(*proto.HttpTxn).Resp == nil {
-				v.HttpRequests.Add(txn)
-			}
-			v.Render()
-		}
-	}
-}
+// 	for {
+// 		select {
+// 		case txn := <-updates:
+// 			v.Debug("Got HTTP update")
+// 			if txn.(*proto.HttpTxn).Resp == nil {
+// 				v.HttpRequests.Add(txn)
+// 			}
+// 			v.Render()
+// 		}
+// 	}
+// }
 
-func (v *HttpView) Render() {
-	v.Clear()
-	v.Printf(0, 0, "HTTP Requests")
-	v.Printf(0, 1, "-------------")
-	for i, obj := range v.HttpRequests.Slice() {
-		txn := obj.(*proto.HttpTxn)
-		path := truncatePath(txn.Req.URL.Path)
-		v.Printf(0, 3+i, "%s %v", txn.Req.Method, path)
-		if txn.Resp != nil {
-			v.APrintf(colorFor(txn.Resp.Status), 30, 3+i, "%s", txn.Resp.Status)
-		}
-	}
-	v.termView.Flush()
-}
+// func (v *HttpView) Render() {
+// 	v.Clear()
+// 	v.Printf(0, 0, "HTTP Requests")
+// 	v.Printf(0, 1, "-------------")
+// 	for i, obj := range v.HttpRequests.Slice() {
+// 		txn := obj.(*proto.HttpTxn)
+// 		path := truncatePath(txn.Req.URL.Path)
+// 		v.Printf(0, 3+i, "%s %v", txn.Req.Method, path)
+// 		if txn.Resp != nil {
+// 			v.APrintf(colorFor(txn.Resp.Status), 30, 3+i, "%s", txn.Resp.Status)
+// 		}
+// 	}
+// 	v.termView.Flush()
+// }
 
-func (v *HttpView) Shutdown() {
-	close(v.shutdown)
-}
+// func (v *HttpView) Shutdown() {
+// 	close(v.shutdown)
+// }
 
 func truncatePath(path string) string {
 	// Truncate all long strings based on rune count

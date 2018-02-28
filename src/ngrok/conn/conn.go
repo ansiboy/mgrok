@@ -12,43 +12,10 @@ import (
 	"sync"
 )
 
-// type Conn interface {
-// 	net.Conn
-// log.Logger
-// Id() string
-// SetType(string)
-// CloseRead() error
-// }
-
-type loggedConn struct {
-	// tcp *net.TCPConn
-	net.Conn
-	// log.Logger
-	// id  int32
-	// typ string
-}
-
 type Listener struct {
 	net.Addr
-	Conns chan net.Conn //*loggedConn
+	Conns chan net.Conn
 }
-
-// func wrapConn(conn net.Conn, typ string) net.Conn {
-// 	return conn
-// 	// switch c := conn.(type) {
-// 	// case *vhost.HTTPConn:
-// 	// 	// wrapped := c.Conn.(*loggedConn)
-// 	// 	return &loggedConn{conn} //wrapped.Logger,wrapped.tcp, , rand.Int31(), typ
-// 	// case *loggedConn:
-// 	// 	return c
-// 	// case *net.TCPConn:
-// 	// 	wrapped := &loggedConn{conn} //log.NewPrefixLogger(),c, , rand.Int31(), typ
-// 	// 	// wrapped.AddLogPrefix(wrapped.Id())
-// 	// 	return wrapped
-// 	// }
-
-// 	// return nil
-// }
 
 func Listen(addr, typ string) (l *Listener, err error) {
 	// listen for incoming connections
@@ -82,22 +49,14 @@ func Listen(addr, typ string) (l *Listener, err error) {
 	return
 }
 
-// func Wrap(conn net.Conn, typ string) net.Conn {
-// 	return wrapConn(conn, typ)
-// }
-
 func Dial(addr, typ string) (conn net.Conn, err error) {
 	var rawConn net.Conn
 	if rawConn, err = net.Dial("tcp", addr); err != nil {
 		return
 	}
 
-	conn = rawConn //wrapConn(rawConn, typ)
+	conn = rawConn
 	log.Debug("New connection to: %v", rawConn.RemoteAddr())
-
-	// if tlsCfg != nil {
-	// 	conn.StartTLS(tlsCfg)
-	// }
 
 	return
 }
@@ -113,17 +72,6 @@ func DialHttpProxy(proxyUrl, addr, typ string) (conn net.Conn, err error) {
 	if parsedUrl.User != nil {
 		proxyAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(parsedUrl.User.String()))
 	}
-
-	// var proxyTlsConfig *tls.Config
-	// switch parsedUrl.Scheme {
-	// case "http":
-	// 	proxyTlsConfig = nil
-	// case "https":
-	// 	proxyTlsConfig = new(tls.Config)
-	// default:
-	// 	err = fmt.Errorf("Proxy URL scheme must be http or https, got: %s", parsedUrl.Scheme)
-	// 	return
-	// }
 
 	// dial the proxy
 	if conn, err = Dial(parsedUrl.Host, typ); err != nil {
@@ -154,42 +102,8 @@ func DialHttpProxy(proxyUrl, addr, typ string) (conn net.Conn, err error) {
 		return
 	}
 
-	// upgrade to TLS
-	// conn.StartTLS(tlsCfg)
-
 	return
 }
-
-// func (c *loggedConn) StartTLS(tlsCfg *tls.Config) {
-// 	c.Conn = c.Conn // tls.Client(c.Conn, tlsCfg)
-// }
-
-// func (c *loggedConn) Close() (err error) {
-// 	if err := c.Conn.Close(); err == nil {
-// 		log.Debug("Closing")
-// 	}
-// 	return
-// }
-
-// func (c *loggedConn) Id() string {
-// 	return fmt.Sprintf("%s:%x", c.typ, c.id)
-// }
-
-// func (c *loggedConn) SetType(typ string) {
-// 	oldId := c.Id()
-// 	c.typ = typ
-// 	// c.ClearLogPrefixes()
-// 	// c.AddLogPrefix(c.Id())
-// 	log.Info("Renamed connection %s", oldId)
-// }
-
-// func (c *loggedConn) CloseRead() error {
-// 	// XXX: use CloseRead() in Conn.Join() and in Control.shutdown() for cleaner
-// 	// connection termination. Unfortunately, when I've tried that, I've observed
-// 	// failures where the connection was closed *before* flushing its write buffer,
-// 	// set with SetLinger() set properly (which it is by default).
-// 	return c.tcp.CloseRead()
-// }
 
 func Join(c net.Conn, c2 net.Conn) (int64, int64) {
 	var wait sync.WaitGroup

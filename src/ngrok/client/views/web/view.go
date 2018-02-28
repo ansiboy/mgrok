@@ -2,14 +2,14 @@
 package web
 
 import (
-	"github.com/gorilla/websocket"
 	"net/http"
 	"ngrok/client/assets"
 	"ngrok/client/mvc"
 	"ngrok/log"
-	"ngrok/proto"
 	"ngrok/util"
 	"path"
+
+	"github.com/gorilla/websocket"
 )
 
 type WebView struct {
@@ -70,9 +70,9 @@ func NewWebView(ctl mvc.Controller, addr string) *WebView {
 	return wv
 }
 
-func (wv *WebView) NewHttpView(proto *proto.Http) *WebHttpView {
-	return newWebHttpView(wv.ctl, wv, proto)
-}
+// func (wv *WebView) NewHttpView(proto *proto.Http) *WebHttpView {
+// 	return newWebHttpView(wv.ctl, wv, proto)
+// }
 
 func (wv *WebView) Shutdown() {
 }
