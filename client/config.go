@@ -206,7 +206,7 @@ func defaultPath() string {
 	filename, _ := osext.Executable()
 	dir := path.Dir(filename)
 
-	return path.Join(dir, "ngrok.yaml")
+	return path.Join(dir, "mgrok.yaml")
 }
 
 func normalizeAddress(addr string, propName string) (string, error) {
