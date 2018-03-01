@@ -1,16 +1,2 @@
 *.swp
 bin/
-pkg/
-src/code.google.com
-src/github.com
-src/golang.org
-src/bitbucket.org
-src/launchpad.net
-src/gopkg.in
-src/ngrok/client/assets
-src/ngrok/server/assets
-src/ngrok/main/ngrok/debug
-src/ngrok/main/ngrokd/debug
-node_modules
-cert
-package-lock.json

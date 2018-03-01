@@ -1,0 +1,14 @@
+server_addr: t.mgrok.cn:4443
+trust_host_root_certs: false
+inspect_addr: disabled
+tunnels:
+    ssh:                      #alinq.cn
+        remote_port: 40022
+        proto:
+            tcp: service4.alinq.cn:22
+    maishu:
+        # hostname: maishu.t.mgrok.cn
+        proto:
+            # http: www.baiddxx234.com:80
+            http: 127.0.0.1:8080
+    

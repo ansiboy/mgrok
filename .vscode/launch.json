@@ -16,22 +16,22 @@
                 "gopath": "${workspaceRoot}"
             },
             "showLog": true,            
-            
-            "program": "${workspaceRoot}/src/ngrok/main/ngrok/ngrok.go",
+            /*
+            "program": "${workspaceRoot}/src/mgrok/main/ngrok/ngrok.go",
             "args": [
                 "-log=stdout",
                 "start",
                 "maishu",
                 "ssh"
             ]
-            /**/
-            /*            
-            "program": "${workspaceRoot}/src/ngrok/main/ngrokd/ngrokd.go",
+            */
+                        
+            "program": "${workspaceRoot}/main/server/mgrokd.go",
             "args": [
                 "-domain=t.mgrok.cn",
                 "-httpAddr=:8081",
                 "-httpsAddr=:8082"
-            ]*/
+            ]/**/
         }
     ]
 }

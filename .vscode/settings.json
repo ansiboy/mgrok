@@ -1,5 +1,0 @@
-{
-    "go.autocompleteUnimportedPackages": true,
-    "go.buildTags": "debug",
-    "go.gopath": "${workspaceRoot}"
-}
