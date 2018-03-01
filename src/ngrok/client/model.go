@@ -228,7 +228,9 @@ func (c *ClientModel) control() {
 	if err != nil {
 		panic(err)
 	}
-	defer ctlConn.Close()
+	defer func() {
+		ctlConn.Close()
+	}()
 
 	// authenticate with the server
 	auth := &msg.Auth{
@@ -420,7 +422,7 @@ func (c *ClientModel) heartbeat(lastPongAddr *int64, conn net.Conn) {
 	pongCheck := time.NewTicker(time.Second)
 
 	defer func() {
-		conn.Close()
+		// conn.Close()
 		ping.Stop()
 		pongCheck.Stop()
 	}()

@@ -36,6 +36,7 @@ Bad Request
 // Listens for new http(s) connections from the public internet
 func startHttpListener(addr string) (listener *conn.Listener) {
 	var err error
+
 	if listener, err = conn.Listen(addr, "pub"); err != nil {
 		panic(err)
 	}

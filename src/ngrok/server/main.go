@@ -63,39 +63,42 @@ func tunnelListener(addr string) {
 		panic(err)
 	}
 
-	log.Info("Listening for control and proxy connections on %s", listener.Addr.String())
+	log.Info("Listening for control and proxy connections on %s", addr)
 	for c := range listener.Conns {
-		go func(tunnelConn net.Conn) {
-			// don't crash on panics
-			defer func() {
-				if r := recover(); r != nil {
-					log.Info("tunnelListener failed with error %v: %s", r, debug.Stack())
-				}
-			}()
+		go tunnelHandler(c)
+	}
+}
 
-			tunnelConn.SetReadDeadline(time.Now().Add(connReadTimeout))
-			var rawMsg msg.Message
-			if rawMsg, err = msg.ReadMsg(tunnelConn); err != nil {
-				log.Warn("Failed to read message: %v", err)
-				tunnelConn.Close()
-				return
-			}
+func tunnelHandler(tunnelConn net.Conn) {
+	// don't crash on panics
+	defer func() {
+		if r := recover(); r != nil {
+			log.Info("tunnelListener failed with error %v: %s", r, debug.Stack())
+		}
+	}()
 
-			// don't timeout after the initial read, tunnel heartbeating will kill
-			// dead connections
-			tunnelConn.SetReadDeadline(time.Time{})
+	tunnelConn.SetReadDeadline(time.Now().Add(connReadTimeout))
+	var rawMsg msg.Message
+	var err error
+	if rawMsg, err = msg.ReadMsg(tunnelConn); err != nil {
+		log.Warn("Failed to read message: %v", err)
+		tunnelConn.Close()
+		return
+	}
 
-			switch m := rawMsg.(type) {
-			case *msg.Auth:
-				NewControl(tunnelConn, m)
+	// don't timeout after the initial read, tunnel heartbeating will kill
+	// dead connections
+	tunnelConn.SetReadDeadline(time.Time{})
 
-			case *msg.RegProxy:
-				NewProxy(tunnelConn, m)
+	switch m := rawMsg.(type) {
+	case *msg.Auth:
+		NewControl(tunnelConn, m)
 
-			default:
-				tunnelConn.Close()
-			}
-		}(c)
+	case *msg.RegProxy:
+		NewProxy(tunnelConn, m)
+
+	default:
+		tunnelConn.Close()
 	}
 }
 

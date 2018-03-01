@@ -31,16 +31,11 @@ func Listen(addr, typ string) (l *Listener, err error) {
 
 	go func() {
 		for {
-			rawConn, err := listener.Accept()
+			c, err := listener.Accept()
 			if err != nil {
 				log.Error("Failed to accept new TCP connection of type %s: %v", typ, err)
 				continue
 			}
-
-			c := rawConn //wrapConn(rawConn, typ)
-			// if tlsCfg != nil {
-			// c.Conn = c.Conn // tls.Server(c.Conn, tlsCfg)
-			// }
 
 			log.Info("New connection from %v", c.RemoteAddr())
 			l.Conns <- c
