@@ -19,7 +19,6 @@ const (
 
 type Tunnel struct {
 	PublicUrl string
-	// Protocol  proto.Protocol
 	LocalAddr string
 	Type      string
 }

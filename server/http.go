@@ -41,8 +41,7 @@ func startHttpListener(addr string) (addr1 net.Addr) {
 		panic(err)
 	}
 
-	proto := "http"
-	log.Info("Listening for public %s connections on %v", proto, addr1.String())
+	log.Info("Listening for public http connections on %v", proto, addr1.String())
 
 	return
 }

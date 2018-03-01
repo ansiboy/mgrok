@@ -25,7 +25,6 @@ type Configuration struct {
 
 const (
 	defaultHTTPAddr   = ":80"
-	defaultHTTPSAddr  = ":443"
 	defaultDomain     = "t.mgrok.cn"
 	defaultLogto      = "stdout"
 	defaultLogLevel   = "DEBUG"
