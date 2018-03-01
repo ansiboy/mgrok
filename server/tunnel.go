@@ -193,8 +193,8 @@ func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel
 	}
 
 	// pre-encode the http basic auth for fast comparisons later
-	if m.HttpAuth != "" {
-		m.HttpAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(m.HttpAuth))
+	if m.HTTPAuth != "" {
+		m.HTTPAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(m.HTTPAuth))
 	}
 
 	// t.AddLogPrefix(t.Id())

@@ -23,6 +23,7 @@ func init() {
 	}
 }
 
+// Main clinet main function
 func Main() {
 	opts, err := ParseArgs()
 	if err != nil {

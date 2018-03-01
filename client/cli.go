@@ -35,6 +35,7 @@ Examples:
 
 `
 
+// Options options
 type Options struct {
 	config    string
 	logto     string
@@ -48,6 +49,7 @@ type Options struct {
 	args      []string
 }
 
+// ParseArgs parse args
 func ParseArgs() (opts *Options, err error) {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, usage1, os.Args[0])

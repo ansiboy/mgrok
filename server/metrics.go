@@ -279,7 +279,7 @@ func (k *KeenIoMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, 
 		Url:                t.url,
 		User:               t.ctl.auth.User,
 		Version:            t.ctl.auth.MmVersion,
-		HttpAuth:           t.req.HttpAuth != "",
+		HttpAuth:           t.req.HTTPAuth != "",
 		Subdomain:          t.req.Subdomain != "",
 		TunnelDuration:     time.Since(t.start).Seconds(),
 		ConnectionDuration: time.Since(start).Seconds(),
@@ -322,7 +322,7 @@ func (k *KeenIoMetrics) CloseTunnel(t *Tunnel) {
 		Version:  t.ctl.auth.MmVersion,
 		//Reason: reason,
 		Duration:  time.Since(t.start).Seconds(),
-		HttpAuth:  t.req.HttpAuth != "",
+		HttpAuth:  t.req.HTTPAuth != "",
 		Subdomain: t.req.Subdomain != "",
 	}
 
