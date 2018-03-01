@@ -6,7 +6,7 @@ import (
 
 	vhost "github.com/inconshreveable/go-vhost"
 	//"net"
-	"ngrok/conn"
+
 	"ngrok/log"
 	"strings"
 	"time"
@@ -34,18 +34,43 @@ Bad Request
 )
 
 // Listens for new http(s) connections from the public internet
-func startHttpListener(addr string) (listener *conn.Listener) {
+func startHttpListener(addr string) (addr1 net.Addr) {
 	var err error
-
-	if listener, err = conn.Listen(addr, "pub"); err != nil {
+	// var addr1 net.Addr
+	if addr1, err = listen(addr, "pub"); err != nil {
 		panic(err)
 	}
 
 	proto := "http"
-	log.Info("Listening for public %s connections on %v", proto, listener.Addr.String())
+	log.Info("Listening for public %s connections on %v", proto, addr1.String())
+
+	return
+}
+
+func listen(addr, typ string) (addr1 net.Addr, err error) {
+	// listen for incoming connections
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return
+	}
+
+	// l = &conn.Listener{
+	// 	Addr: listener.Addr(),
+	// }
+
+	addr1 = listener.Addr()
+
 	go func() {
-		for conn := range listener.Conns {
-			go httpHandler(conn, proto)
+		for {
+			c, err := listener.Accept()
+			if err != nil {
+				log.Error("Failed to accept new TCP connection of type %s: %v", typ, err)
+				continue
+			}
+
+			go httpHandler(c, "http")
+
+			log.Info("New connection from %v", c.RemoteAddr())
 		}
 	}()
 

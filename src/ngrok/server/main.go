@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
-	"ngrok/conn"
 	log "ngrok/log"
 	"ngrok/msg"
 	"ngrok/util"
@@ -24,8 +23,8 @@ var (
 	controlRegistry *ControlRegistry
 
 	// XXX: kill these global variables - they're only used in tunnel.go for constructing forwarding URLs
-	opts      *Configuration
-	listeners map[string]*conn.Listener
+	opts *Configuration
+	// listeners map[string]*conn.Listener
 )
 
 func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
@@ -56,20 +55,29 @@ func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 // for ease of deployment. The hope is that by running on port 443, using
 // TLS and running all connections over the same port, we can bust through
 // restrictive firewalls.
-func tunnelListener(addr string) {
+func tunnelListener(tunnelAddr string, httpAddr net.Addr) {
 	// listen for incoming connections
-	listener, err := conn.Listen(addr, "tun")
+	listener, err := net.Listen("tcp", tunnelAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	log.Info("Listening for control and proxy connections on %s", addr)
-	for c := range listener.Conns {
-		go tunnelHandler(c)
+	for {
+		c, err := listener.Accept()
+		if err != nil {
+			log.Error("Failed to accept new TCP connection of type tcp: %v", err)
+			continue
+		}
+
+		go tunnelHandler(c, httpAddr)
+
+		log.Info("New connection from %v", c.RemoteAddr())
 	}
+
+	log.Info("Listening for control and proxy connections on %s", tunnelAddr)
 }
 
-func tunnelHandler(tunnelConn net.Conn) {
+func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
 	// don't crash on panics
 	defer func() {
 		if r := recover(); r != nil {
@@ -92,7 +100,7 @@ func tunnelHandler(tunnelConn net.Conn) {
 
 	switch m := rawMsg.(type) {
 	case *msg.Auth:
-		NewControl(tunnelConn, m)
+		NewControl(tunnelConn, m, httpAddr)
 
 	case *msg.RegProxy:
 		NewProxy(tunnelConn, m)
@@ -131,25 +139,13 @@ func Main() {
 	tunnelRegistry = NewTunnelRegistry(registryCacheSize, registryCacheFile)
 	controlRegistry = NewControlRegistry()
 
-	// start listeners
-	listeners = make(map[string]*conn.Listener)
-
-	// load tls configuration
-	// tlsConfig, err := LoadTLSConfig(opts.TlsCrt, opts.TlsKey)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	// listen for http
+	var httpAddr net.Addr
 	if opts.HttpAddr != "" {
-		listeners["http"] = startHttpListener(opts.HttpAddr)
+		httpAddr = startHttpListener(opts.HttpAddr)
 	}
 
-	// // listen for https
-	// if opts.HttpsAddr != "" {
-	// 	listeners["https"] = startHttpListener(opts.HttpsAddr, tlsConfig)
-	// }
-
 	// ngrok clients
-	tunnelListener(opts.TunnelAddr)
+	tunnelListener(opts.TunnelAddr, httpAddr)
+	fmt.Scanln()
 }

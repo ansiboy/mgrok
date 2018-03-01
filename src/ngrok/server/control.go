@@ -59,9 +59,11 @@ type Control struct {
 
 	// synchronizer for controller shutdown of entire Control
 	shutdown *util.Shutdown
+
+	httpAddr net.Addr
 }
 
-func NewControl(ctlConn net.Conn, authMsg *msg.Auth) {
+func NewControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	var err error
 
 	// create the object
@@ -76,6 +78,7 @@ func NewControl(ctlConn net.Conn, authMsg *msg.Auth) {
 		readerShutdown:  util.NewShutdown(),
 		managerShutdown: util.NewShutdown(),
 		shutdown:        util.NewShutdown(),
+		httpAddr:        httpAddr,
 	}
 
 	failAuth := func(e error) {
@@ -133,7 +136,17 @@ func (c *Control) registerTunnel(rawTunnelReq *msg.ReqTunnel) {
 		tunnelReq.Protocol = proto
 
 		log.Debug("Registering new tunnel")
-		t, err := NewTunnel(&tunnelReq, c)
+		// t, err := NewTunnel(&tunnelReq, c)
+		var t *Tunnel
+		var err error
+		var protocol = rawTunnelReq.Protocol
+		if protocol == "http" {
+			t, err = NewHttpTunnel(&tunnelReq, c, c.httpAddr)
+		} else if protocol == "tcp" {
+			t, err = NewTcpTunnel(&tunnelReq, c)
+		} else {
+			err = fmt.Errorf("Protocol %s is not supported", proto)
+		}
 		if err != nil {
 			c.out <- &msg.NewTunnel{Error: err.Error()}
 			if len(c.tunnels) == 0 {

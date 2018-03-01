@@ -12,38 +12,6 @@ import (
 	"sync"
 )
 
-type Listener struct {
-	net.Addr
-	Conns chan net.Conn
-}
-
-func Listen(addr, typ string) (l *Listener, err error) {
-	// listen for incoming connections
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		return
-	}
-
-	l = &Listener{
-		Addr:  listener.Addr(),
-		Conns: make(chan net.Conn),
-	}
-
-	go func() {
-		for {
-			c, err := listener.Accept()
-			if err != nil {
-				log.Error("Failed to accept new TCP connection of type %s: %v", typ, err)
-				continue
-			}
-
-			log.Info("New connection from %v", c.RemoteAddr())
-			l.Conns <- c
-		}
-	}()
-	return
-}
-
 func Dial(addr, typ string) (conn net.Conn, err error) {
 	var rawConn net.Conn
 	if rawConn, err = net.Dial("tcp", addr); err != nil {
