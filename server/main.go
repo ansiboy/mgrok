@@ -27,6 +27,7 @@ var (
 	// listeners map[string]*conn.Listener
 )
 
+// NewProxy new proxy
 func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 	// fail gracefully if the proxy connection fails to register
 	defer func() {
@@ -62,6 +63,8 @@ func tunnelListener(tunnelAddr string, httpAddr net.Addr) {
 		panic(err)
 	}
 
+	log.Info("Listening for control and proxy connections on %s", tunnelAddr)
+
 	for {
 		c, err := listener.Accept()
 		if err != nil {
@@ -74,7 +77,6 @@ func tunnelListener(tunnelAddr string, httpAddr net.Addr) {
 		log.Info("New connection from %v", c.RemoteAddr())
 	}
 
-	log.Info("Listening for control and proxy connections on %s", tunnelAddr)
 }
 
 func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
@@ -110,10 +112,8 @@ func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
 	}
 }
 
+// Main server main
 func Main() {
-	// parse options
-	// opts = ParseArgs()
-
 	// read configuration file
 	config, err := LoadConfiguration("")
 	opts = config
@@ -122,7 +122,6 @@ func Main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	// fmt.Printf("%s", config)
 
 	// init logging
 	log.LogTo(opts.LogTo, opts.LogLevel)
@@ -141,8 +140,8 @@ func Main() {
 
 	// listen for http
 	var httpAddr net.Addr
-	if opts.HttpAddr != "" {
-		httpAddr = startHttpListener(opts.HttpAddr)
+	if opts.HTTPAddr != "" {
+		httpAddr = startHttpListener(opts.HTTPAddr)
 	}
 
 	// ngrok clients

@@ -10,14 +10,14 @@ import (
 	yaml "gopkg.in/yaml.v1"
 )
 
+// Configuration server config
 type Configuration struct {
-	HttpAddr        string `yaml:"http_addr,omitempty"`
-	HttpsAddr       string `yaml:"https_addr,omitempty"`
+	HTTPAddr        string `yaml:"http_addr,omitempty"`
 	TunnelAddr      string `yaml:"tunnel_addr,omitempty"`
 	Domain          string `yaml:"domain,omitempty"`
 	LogTo           string `yaml:"log_to,omitempty"`
 	LogLevel        string `yaml:"log_level,omitempty"`
-	HttpPulbishPort string `yaml:"http_pulbish_port,omitempty"`
+	HTTPPulbishPort string `yaml:"http_pulbish_port,omitempty"`
 }
 
 const (

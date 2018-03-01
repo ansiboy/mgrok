@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultServerAddr   = "t.mgrok.cn:443"
+	defaultServerAddr   = "t.mgrok.cn:4443"
 	defaultInspectAddr  = "127.0.0.1:4040"
 	pingInterval        = 20 * time.Second
 	maxPongLatency      = 15 * time.Second
@@ -80,22 +80,6 @@ func newClientModel(config *Configuration) *Model {
 		// config path
 		configPath: config.Path,
 	}
-
-	// configure TLS
-	// if config.TrustHostRootCerts {
-	// 	m.Info("Trusting host's root certificates")
-	// 	m.tlsConfig = &tls.Config{}
-	// } else {
-	// 	m.Info("Trusting root CAs: %v", rootCrtPaths)
-	// 	var err error
-	// 	if m.tlsConfig, err = LoadTLSConfig(rootCrtPaths); err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
-	// configure TLS SNI
-	// m.tlsConfig.ServerName = serverName(m.serverAddr)
-	// m.tlsConfig.InsecureSkipVerify = useInsecureSkipVerify()
 
 	return m
 }
@@ -399,7 +383,6 @@ func (c *Model) heartbeat(lastPongAddr *int64, conn net.Conn) {
 	pongCheck := time.NewTicker(time.Second)
 
 	defer func() {
-		// conn.Close()
 		ping.Stop()
 		pongCheck.Stop()
 	}()

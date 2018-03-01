@@ -31,7 +31,7 @@ func Main() {
 		os.Exit(1)
 	}
 	// set up logging
-	log.LogTo(opts.logto, opts.loglevel)
+	log.LogTo(opts.log, opts.loglevel)
 
 	// read configuration file
 	config, err := LoadConfiguration(opts)

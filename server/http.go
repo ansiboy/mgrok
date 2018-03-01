@@ -13,20 +13,20 @@ import (
 )
 
 const (
-	NotAuthorized = `HTTP/1.0 401 Not Authorized
+	notAuthorized = `HTTP/1.0 401 Not Authorized
 WWW-Authenticate: Basic realm="ngrok"
 Content-Length: 23
 
 Authorization required
 `
 
-	NotFound = `HTTP/1.0 404 Not Found
+	notFound = `HTTP/1.0 404 Not Found
 Content-Length: %d
 
 Tunnel %s not found
 `
 
-	BadRequest = `HTTP/1.0 400 Bad Request
+	badRequest = `HTTP/1.0 400 Bad Request
 Content-Length: 12
 
 Bad Request
@@ -93,7 +93,7 @@ func httpHandler(c net.Conn, proto string) {
 	vhostConn, err := vhost.HTTP(c)
 	if err != nil {
 		log.Warn("Failed to read valid %s request: %v", proto, err)
-		c.Write([]byte(BadRequest))
+		c.Write([]byte(badRequest))
 		return
 	}
 
@@ -116,7 +116,7 @@ func httpHandler(c net.Conn, proto string) {
 	tunnel := tunnelRegistry.Get(fmt.Sprintf("%s://%s", proto, host))
 	if tunnel == nil {
 		log.Info("No tunnel found for hostname %s", host)
-		c.Write([]byte(fmt.Sprintf(NotFound, len(host)+18, host)))
+		c.Write([]byte(fmt.Sprintf(notFound, len(host)+18, host)))
 		return
 	}
 
@@ -125,7 +125,7 @@ func httpHandler(c net.Conn, proto string) {
 	// request with basic authdeny the request
 	if tunnel.req.HTTPAuth != "" && auth != tunnel.req.HTTPAuth {
 		log.Info("Authentication failed: %s", auth)
-		c.Write([]byte(NotAuthorized))
+		c.Write([]byte(notAuthorized))
 		return
 	}
 

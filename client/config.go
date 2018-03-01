@@ -137,7 +137,7 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 	}
 
 	// override configuration with command-line options
-	config.LogTo = opts.logto
+	config.LogTo = opts.log
 	config.Path = configPath
 	if opts.authtoken != "" {
 		config.AuthToken = opts.authtoken

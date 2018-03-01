@@ -13,32 +13,32 @@ Options:
 
 const usage2 string = `
 Examples:
-	ngrok 80
-	ngrok -subdomain=example 8080
-	ngrok -proto=tcp 22
-	ngrok -hostname="example.com" -httpauth="user:password" 10.0.0.1
+	mgrok 80
+	mgrok -subdomain=example 8080
+	mgrok -proto=tcp 22
+	mgrok -hostname="example.com" -httpauth="user:password" 10.0.0.1
 
 
-Advanced usage: ngrok [OPTIONS] <command> [command args] [...]
+Advanced usage: mgrok [OPTIONS] <command> [command args] [...]
 Commands:
-	ngrok start [tunnel] [...]    Start tunnels by name from config file
-	ngork start-all               Start all tunnels defined in config file
-	ngrok list                    List tunnel names from config file
-	ngrok help                    Print help
-	ngrok version                 Print ngrok version
+	mgrok start [tunnel] [...]    Start tunnels by name from config file
+	mgrok start-all               Start all tunnels defined in config file
+	mgrok list                    List tunnel names from config file
+	mgrok help                    Print help
+	mgrok version                 Print mgrok version
 
 Examples:
-	ngrok start www api blog pubsub
-	ngrok -log=stdout -config=ngrok.yml start ssh
-	ngrok start-all
-	ngrok version
+	mgrok start www api blog pubsub
+	mgrok -log=stdout -config=ngrok.yml start ssh
+	mgrok start-all
+	mgrok version
 
 `
 
 // Options options
 type Options struct {
 	config    string
-	logto     string
+	log       string
 	loglevel  string
 	authtoken string
 	httpauth  string
@@ -101,7 +101,7 @@ func ParseArgs() (opts *Options, err error) {
 
 	opts = &Options{
 		config:    *config,
-		logto:     *logto,
+		log:       *logto,
 		loglevel:  *loglevel,
 		httpauth:  *httpauth,
 		subdomain: *subdomain,

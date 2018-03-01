@@ -21,6 +21,7 @@ const (
 	proxyMaxPoolSize    = 10
 )
 
+// Control control
 type Control struct {
 	// auth message
 	auth *msg.Auth
@@ -63,6 +64,7 @@ type Control struct {
 	httpAddr net.Addr
 }
 
+// NewControl Create Control object
 func NewControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	var err error
 
@@ -256,9 +258,10 @@ func (c *Control) reader() {
 			if err == io.EOF {
 				log.Info("EOF")
 				return
-			} else {
-				panic(err)
 			}
+
+			panic(err)
+
 		} else {
 			// this can also panic during shutdown
 			c.in <- msg
@@ -305,6 +308,7 @@ func (c *Control) stopper() {
 	log.Info("Shutdown complete")
 }
 
+// RegisterProxy register proxy
 func (c *Control) RegisterProxy(conn net.Conn) {
 	// conn.AddLogPrefix(c.id)
 
@@ -318,6 +322,7 @@ func (c *Control) RegisterProxy(conn net.Conn) {
 	}
 }
 
+// GetProxy get proxy
 // Remove a proxy connection from the pool and return it
 // If not proxy connections are in the pool, request one
 // and wait until it is available
@@ -355,6 +360,7 @@ func (c *Control) GetProxy() (proxyConn net.Conn, err error) {
 	return
 }
 
+// Replaced replace
 // Called when this control is replaced by another control
 // this can happen if the network drops out and the client reconnects
 // before the old tunnel has lost its heartbeat

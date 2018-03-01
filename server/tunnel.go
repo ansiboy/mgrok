@@ -184,8 +184,8 @@ func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel
 	}
 
 	servingPort := httpAddr.(*net.TCPAddr).Port //l.Addr.(*net.TCPAddr).Port
-	if opts.HttpPulbishPort != "" {
-		servingPort, err = strconv.Atoi(opts.HttpPulbishPort)
+	if opts.HTTPPulbishPort != "" {
+		servingPort, err = strconv.Atoi(opts.HTTPPulbishPort)
 	}
 
 	if err = registerVhost(t, proto, servingPort); err != nil {
