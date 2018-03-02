@@ -15,7 +15,7 @@ import (
 func init() {
 	if runtime.GOOS == "windows" {
 		if mousetrap.StartedByExplorer() {
-			fmt.Println("Don't double-click ngrok!")
+			fmt.Println("Don't double-click mgrok!")
 			fmt.Println("You need to open cmd.exe and run it from the command line!")
 			time.Sleep(5 * time.Second)
 			os.Exit(1)
@@ -49,5 +49,12 @@ func Main() {
 	rand.Seed(seed)
 
 	model := newClientModel(config)
+
+	console := NewConsole(model)
+	model.updateCallback = func(c *Model) {
+		console.Render()
+	}
+
 	model.Run()
+
 }

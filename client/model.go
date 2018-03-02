@@ -35,17 +35,18 @@ const (
 // Model client model
 type Model struct {
 	log.Logger
-	id            string
-	tunnels       map[string]mvc.Tunnel
-	serverVersion string
-	metrics       *Metrics
-	updateStatus  mvc.UpdateStatus
-	connStatus    mvc.ConnStatus
-	serverAddr    string
-	proxyURL      string
-	authToken     string
-	tunnelConfig  map[string]*TunnelConfiguration
-	configPath    string
+	id             string
+	tunnels        map[string]mvc.Tunnel
+	serverVersion  string
+	metrics        *Metrics
+	updateStatus   mvc.UpdateStatus
+	connStatus     mvc.ConnStatus
+	serverAddr     string
+	proxyURL       string
+	authToken      string
+	tunnelConfig   map[string]*TunnelConfiguration
+	configPath     string
+	updateCallback func(c *Model)
 }
 
 func newClientModel(config *Configuration) *Model {
@@ -139,7 +140,10 @@ func (c Model) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
 }
 
 func (c *Model) update() {
-	// c.ctl.Update(c)
+	if c.updateCallback != nil {
+		c.updateCallback(c)
+	}
+
 }
 
 // Run run
