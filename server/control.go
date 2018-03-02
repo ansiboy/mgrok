@@ -108,7 +108,7 @@ func newControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	}
 
 	// register the control
-	if replaced := controlRegistry.Add(c.id, c); replaced != nil {
+	if replaced := controlRegistry.add(c.id, c); replaced != nil {
 		replaced.shutdown.WaitComplete()
 	}
 
@@ -145,7 +145,7 @@ func (c *Control) registerTunnel(rawTunnelReq *msg.ReqTunnel) {
 		if protocol == "http" {
 			t, err = newHTTPTunnel(&tunnelReq, c, c.httpAddr)
 		} else if protocol == "tcp" {
-			t, err = NewTcpTunnel(&tunnelReq, c)
+			t, err = newTCPTunnel(&tunnelReq, c)
 		} else {
 			err = fmt.Errorf("Protocol %s is not supported", proto)
 		}
@@ -284,7 +284,7 @@ func (c *Control) stopper() {
 	c.shutdown.WaitBegin()
 
 	// remove ourself from the control registry
-	controlRegistry.Del(c.id)
+	controlRegistry.del(c.id)
 
 	// shutdown manager() so that we have no more work to do
 	close(c.in)
@@ -299,7 +299,7 @@ func (c *Control) stopper() {
 
 	// shutdown all of the tunnels
 	for _, t := range c.tunnels {
-		t.Shutdown()
+		t.shutdown()
 	}
 
 	// shutdown all of the proxy connections
