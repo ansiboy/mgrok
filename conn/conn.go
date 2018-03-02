@@ -50,7 +50,7 @@ func DialHttpProxy(proxyUrl, addr, typ string) (conn net.Conn, err error) {
 	if proxyAuth != "" {
 		req.Header.Set("Proxy-Authorization", proxyAuth)
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; ngrok)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; mgrok)")
 	req.Write(conn)
 
 	// read the proxy's response

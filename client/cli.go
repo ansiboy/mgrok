@@ -29,7 +29,7 @@ Commands:
 
 Examples:
 	mgrok start www api blog pubsub
-	mgrok -log=stdout -config=ngrok.yml start ssh
+	mgrok -log=stdout -config=mgrok.yaml start ssh
 	mgrok start-all
 	mgrok version
 
@@ -60,7 +60,7 @@ func ParseArgs() (opts *Options, err error) {
 	config := flag.String(
 		"config",
 		"",
-		"Path to ngrok configuration file. (default: $HOME/.ngrok)")
+		"Path to mgrok configuration file. (default: mgrok.yaml)")
 
 	logto := flag.String(
 		"log",
@@ -75,7 +75,7 @@ func ParseArgs() (opts *Options, err error) {
 	authtoken := flag.String(
 		"authtoken",
 		"",
-		"Authentication token for identifying an ngrok.com account")
+		"Authentication token for identifying an mgrok.cn account")
 
 	httpauth := flag.String(
 		"httpauth",
@@ -85,12 +85,12 @@ func ParseArgs() (opts *Options, err error) {
 	subdomain := flag.String(
 		"subdomain",
 		"",
-		"Request a custom subdomain from the ngrok server. (HTTP only)")
+		"Request a custom subdomain from the mgrok server. (HTTP only)")
 
 	hostname := flag.String(
 		"hostname",
 		"",
-		"Request a custom hostname from the ngrok server. (HTTP only) (requires CNAME of your DNS)")
+		"Request a custom hostname from the mgrok server. (HTTP only) (requires CNAME of your DNS)")
 
 	protocol := flag.String(
 		"proto",
@@ -126,8 +126,8 @@ func ParseArgs() (opts *Options, err error) {
 		os.Exit(0)
 	case "":
 		err = fmt.Errorf("Error: Specify a local port to tunnel to, or " +
-			"an ngrok command.\n\nExample: To expose port 80, run " +
-			"'ngrok 80'")
+			"an mgrok command.\n\nExample: To expose port 80, run " +
+			"'mgrok 80'")
 		return
 
 	default:

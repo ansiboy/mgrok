@@ -26,6 +26,7 @@ func init() {
 	}
 }
 
+// Metrics metrics
 type Metrics interface {
 	log.Logger
 	openConnection(*Tunnel, net.Conn)
@@ -34,6 +35,7 @@ type Metrics interface {
 	closeTunnel(*Tunnel)
 }
 
+// LocalMetrics local metrics
 type LocalMetrics struct {
 	log.Logger
 	reportInterval time.Duration
@@ -255,31 +257,31 @@ func (k *KeenIoMetrics) openConnection(t *Tunnel, c net.Conn) {
 
 func (k *KeenIoMetrics) closeConnection(t *Tunnel, c net.Conn, start time.Time, in, out int64) {
 	event := struct {
-		Keen               KeenStruct `json:"keen"`
+		Keen               keenStruct `json:"keen"`
 		OS                 string
-		ClientId           string
+		ClientID           string
 		Protocol           string
-		Url                string
+		URL                string
 		User               string
 		Version            string
 		Reason             string
-		HttpAuth           bool
+		HTTPAuth           bool
 		Subdomain          bool
 		TunnelDuration     float64
 		ConnectionDuration float64
 		BytesIn            int64
 		BytesOut           int64
 	}{
-		Keen: KeenStruct{
+		Keen: keenStruct{
 			Timestamp: start.UTC().Format("2006-01-02T15:04:05.000Z"),
 		},
 		OS:                 t.ctl.auth.OS,
-		ClientId:           t.ctl.id,
+		ClientID:           t.ctl.id,
 		Protocol:           t.req.Protocol,
-		Url:                t.url,
+		URL:                t.url,
 		User:               t.ctl.auth.User,
 		Version:            t.ctl.auth.MmVersion,
-		HttpAuth:           t.req.HTTPAuth != "",
+		HTTPAuth:           t.req.HTTPAuth != "",
 		Subdomain:          t.req.Subdomain != "",
 		TunnelDuration:     time.Since(t.start).Seconds(),
 		ConnectionDuration: time.Since(start).Seconds(),
@@ -293,13 +295,13 @@ func (k *KeenIoMetrics) closeConnection(t *Tunnel, c net.Conn, start time.Time, 
 func (k *KeenIoMetrics) openTunnel(t *Tunnel) {
 }
 
-type KeenStruct struct {
+type keenStruct struct {
 	Timestamp string `json:"timestamp"`
 }
 
 func (k *KeenIoMetrics) closeTunnel(t *Tunnel) {
 	event := struct {
-		Keen      KeenStruct `json:"keen"`
+		Keen      keenStruct `json:"keen"`
 		OS        string
 		ClientId  string
 		Protocol  string
@@ -311,7 +313,7 @@ func (k *KeenIoMetrics) closeTunnel(t *Tunnel) {
 		HttpAuth  bool
 		Subdomain bool
 	}{
-		Keen: KeenStruct{
+		Keen: keenStruct{
 			Timestamp: t.start.UTC().Format("2006-01-02T15:04:05.000Z"),
 		},
 		OS:       t.ctl.auth.OS,
