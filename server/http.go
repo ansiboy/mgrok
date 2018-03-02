@@ -34,7 +34,7 @@ Bad Request
 )
 
 // Listens for new http(s) connections from the public internet
-func startHttpListener(addr string) (addr1 net.Addr) {
+func startHTTPListener(addr string) (addr1 net.Addr) {
 	var err error
 	// var addr1 net.Addr
 	if addr1, err = listen(addr, "pub"); err != nil {

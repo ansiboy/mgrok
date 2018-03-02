@@ -28,7 +28,7 @@ var (
 )
 
 // NewProxy new proxy
-func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
+func newProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 	// fail gracefully if the proxy connection fails to register
 	defer func() {
 		if r := recover(); r != nil {
@@ -102,10 +102,10 @@ func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
 
 	switch m := rawMsg.(type) {
 	case *msg.Auth:
-		NewControl(tunnelConn, m, httpAddr)
+		newControl(tunnelConn, m, httpAddr)
 
 	case *msg.RegProxy:
-		NewProxy(tunnelConn, m)
+		newProxy(tunnelConn, m)
 
 	default:
 		tunnelConn.Close()
@@ -141,7 +141,7 @@ func Main() {
 	// listen for http
 	var httpAddr net.Addr
 	if opts.HTTPAddr != "" {
-		httpAddr = startHttpListener(opts.HTTPAddr)
+		httpAddr = startHTTPListener(opts.HTTPAddr)
 	}
 
 	// ngrok clients

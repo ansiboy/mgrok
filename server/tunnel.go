@@ -129,7 +129,7 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			return err
 		}
 
-		go t.listenTcp(t.listener)
+		go t.listenTCP(t.listener)
 		return nil
 	}
 
@@ -167,7 +167,7 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 
 // Create a new tunnel from a registration message received
 // on a control channel
-func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel, err error) {
+func newHTTPTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel, err error) {
 	t = &Tunnel{
 		req:    m,
 		start:  time.Now(),
@@ -200,7 +200,7 @@ func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel
 	// t.AddLogPrefix(t.Id())
 	t.Info("Registered new tunnel on: %s", "another") // t.ctl.conn.Id())
 
-	metrics.OpenTunnel(t)
+	metrics.openTunnel(t)
 	return
 }
 
@@ -223,15 +223,15 @@ func (t *Tunnel) Shutdown() {
 	// so it doesn't need to know about it
 	// t.ctl.stoptunnel <- t
 
-	metrics.CloseTunnel(t)
+	metrics.closeTunnel(t)
 }
 
-func (t *Tunnel) Id() string {
+func (t *Tunnel) ID() string {
 	return t.url
 }
 
 // Listens for new public tcp connections from the internet.
-func (t *Tunnel) listenTcp(listener *net.TCPListener) {
+func (t *Tunnel) listenTCP(listener *net.TCPListener) {
 	for {
 		defer func() {
 			if r := recover(); r != nil {
@@ -269,7 +269,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
 	}()
 
 	startTime := time.Now()
-	metrics.OpenConnection(t, publicConn)
+	metrics.openConnection(t, publicConn)
 
 	var proxyConn net.Conn
 	var err error
@@ -313,5 +313,5 @@ func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
 
 	// join the public and proxy connections
 	bytesIn, bytesOut := conn.Join(publicConn, proxyConn)
-	metrics.CloseConnection(t, publicConn, startTime, bytesIn, bytesOut)
+	metrics.closeConnection(t, publicConn, startTime, bytesIn, bytesOut)
 }

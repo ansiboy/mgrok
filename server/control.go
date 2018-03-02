@@ -65,7 +65,7 @@ type Control struct {
 }
 
 // NewControl Create Control object
-func NewControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
+func newControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	var err error
 
 	// create the object
@@ -143,7 +143,7 @@ func (c *Control) registerTunnel(rawTunnelReq *msg.ReqTunnel) {
 		var err error
 		var protocol = rawTunnelReq.Protocol
 		if protocol == "http" {
-			t, err = NewHttpTunnel(&tunnelReq, c, c.httpAddr)
+			t, err = newHTTPTunnel(&tunnelReq, c, c.httpAddr)
 		} else if protocol == "tcp" {
 			t, err = NewTcpTunnel(&tunnelReq, c)
 		} else {
@@ -182,10 +182,14 @@ func (c *Control) manager() {
 	}()
 
 	// kill everything if the control manager stops
-	defer c.shutdown.Begin()
+	defer func() {
+		c.shutdown.Begin()
+	}()
 
 	// notify that manager() has shutdown
-	defer c.managerShutdown.Complete()
+	defer func() {
+		c.managerShutdown.Complete()
+	}()
 
 	// reaping timer for detecting heartbeat failure
 	reap := time.NewTicker(connReapInterval)
