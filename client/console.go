@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"mgrok/client/mvc"
 	"os"
 	"os/exec"
 	"runtime"
@@ -55,11 +54,11 @@ func (console Console) Render() {
 
 	var connStatus = ""
 	switch c.connStatus {
-	case mvc.ConnConnecting:
+	case ConnConnecting:
 		connStatus = "connecting"
-	case mvc.ConnReconnecting:
+	case ConnReconnecting:
 		connStatus = "connecting"
-	case mvc.ConnOnline:
+	case ConnOnline:
 		connStatus = "online"
 	}
 
@@ -131,11 +130,11 @@ func (console Console) Render() {
 
 // 	var connStatus = ""
 // 	switch c.connStatus {
-// 	case mvc.ConnConnecting:
+// 	case ConnConnecting:
 // 		connStatus = "connecting"
-// 	case mvc.ConnReconnecting:
+// 	case ConnReconnecting:
 // 		connStatus = "connecting"
-// 	case mvc.ConnOnline:
+// 	case ConnOnline:
 // 		connStatus = "online"
 // 	}
 
