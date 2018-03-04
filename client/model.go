@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"math"
-	"mgrok/client/mvc"
 	"mgrok/conn"
 	"mgrok/log"
 	"mgrok/msg"
@@ -15,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ansiboy/mgrok/src/ngrok/client/mvc"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
@@ -65,16 +65,16 @@ func newClientModel(config *Configuration, changed chan *Model) *Model {
 		authToken: config.AuthToken,
 
 		// connection status
-		connStatus: mvc.ConnConnecting,
+		connStatus: ConnConnecting,
 
 		// update status
-		updateStatus: mvc.UpdateNone,
+		updateStatus: UpdateNone,
 
 		// metrics
 		metrics: NewClientMetrics(),
 
 		// open tunnels
-		tunnels: make(map[string]mvc.Tunnel),
+		tunnels: make(map[string]Tunnel),
 
 		// tunnel configuration
 		tunnelConfig: config.Tunnels,
@@ -109,8 +109,8 @@ func (c Model) GetClientVersion() string { return version.MajorMinor() }
 func (c Model) GetServerVersion() string { return c.serverVersion }
 
 // GetTunnels get tunnels
-func (c Model) GetTunnels() []mvc.Tunnel {
-	tunnels := make([]mvc.Tunnel, 0)
+func (c Model) GetTunnels() []Tunnel {
+	tunnels := make([]Tunnel, 0)
 	for _, t := range c.tunnels {
 		tunnels = append(tunnels, t)
 	}
@@ -118,10 +118,10 @@ func (c Model) GetTunnels() []mvc.Tunnel {
 }
 
 // GetConnStatus get connection status
-func (c Model) GetConnStatus() mvc.ConnStatus { return c.connStatus }
+func (c Model) GetConnStatus() ConnStatus { return c.connStatus }
 
 // GetUpdateStatus client update status
-func (c Model) GetUpdateStatus() mvc.UpdateStatus { return c.updateStatus }
+func (c Model) GetUpdateStatus() UpdateStatus { return c.updateStatus }
 
 // GetConnectionMetrics connection metrics
 func (c Model) GetConnectionMetrics() (metrics.Meter, metrics.Timer) {
@@ -139,7 +139,7 @@ func (c Model) GetBytesOutMetrics() (metrics.Counter, metrics.Histogram) {
 }
 
 // SetUpdateStatus set update status
-func (c Model) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
+func (c Model) SetUpdateStatus(updateStatus UpdateStatus) {
 	c.updateStatus = updateStatus
 	c.update()
 }
@@ -162,7 +162,7 @@ func (c *Model) Run() {
 		c.control()
 
 		// control only returns when a failure has occurred, so we're going to try to reconnect
-		if c.connStatus == mvc.ConnOnline {
+		if c.connStatus == ConnOnline {
 			wait = 1 * time.Second
 		}
 
@@ -171,7 +171,7 @@ func (c *Model) Run() {
 		// exponentially increase wait time
 		wait = 2 * wait
 		wait = time.Duration(math.Min(float64(wait), float64(maxWait)))
-		c.connStatus = mvc.ConnReconnecting
+		c.connStatus = ConnReconnecting
 		c.update()
 	}
 }
@@ -295,7 +295,7 @@ func (c *Model) control() {
 				continue
 			}
 
-			tunnel := mvc.Tunnel{
+			tunnel := Tunnel{
 				PublicUrl: m.Url,
 				LocalAddr: reqIDToTunnelConfig[m.ReqId].Protocols[m.Protocol],
 				// Protocol:  c.protoMap[m.Protocol],
@@ -303,7 +303,7 @@ func (c *Model) control() {
 			}
 
 			c.tunnels[tunnel.PublicUrl] = tunnel
-			c.connStatus = mvc.ConnOnline
+			c.connStatus = ConnOnline
 			c.Info("Tunnel established at %v", tunnel.PublicUrl)
 			c.update()
 
@@ -375,7 +375,7 @@ Content-Length: %d
 	m.connMeter.Mark(1)
 	c.update()
 	m.connTimer.Time(func() {
-		localConn := localConn //tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
+		localConn := localConn //tunnel.Protocol.WrapConn(localConn, ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
 		bytesIn, bytesOut := conn.Join(localConn, remoteConn)
 		m.bytesIn.Update(bytesIn)
 		m.bytesOut.Update(bytesOut)

@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"mgrok/client/mvc"
 	"mgrok/log"
 	"time"
 
@@ -34,11 +33,11 @@ func startConsole(modelChan chan *Model) {
 func render(c *Model) {
 	var connStatus = ""
 	switch c.connStatus {
-	case mvc.ConnConnecting:
+	case ConnConnecting:
 		connStatus = "connecting"
-	case mvc.ConnReconnecting:
+	case ConnReconnecting:
 		connStatus = "connecting"
-	case mvc.ConnOnline:
+	case ConnOnline:
 		connStatus = "online"
 	}
 
