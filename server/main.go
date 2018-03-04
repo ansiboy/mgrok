@@ -42,7 +42,7 @@ func newProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 
 	// look up the control connection for this proxy
 	log.Info("Registering new proxy for %s", regPxy.ClientId)
-	ctl := controlRegistry.Get(regPxy.ClientId)
+	ctl := controlRegistry.get(regPxy.ClientId)
 
 	if ctl == nil {
 		panic("No client found for identifier: " + regPxy.ClientId)
@@ -135,8 +135,8 @@ func Main() {
 
 	// init tunnel/control registry
 	registryCacheFile := os.Getenv("REGISTRY_CACHE_FILE")
-	tunnelRegistry = NewTunnelRegistry(registryCacheSize, registryCacheFile)
-	controlRegistry = NewControlRegistry()
+	tunnelRegistry = newTunnelRegistry(registryCacheSize, registryCacheFile)
+	controlRegistry = newControlRegistry()
 
 	// listen for http
 	var httpAddr net.Addr

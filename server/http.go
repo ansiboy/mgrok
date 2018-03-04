@@ -113,7 +113,7 @@ func httpHandler(c net.Conn, proto string) {
 
 	// multiplex to find the right backend host
 	log.Debug("Found hostname %s in request", host)
-	tunnel := tunnelRegistry.Get(fmt.Sprintf("%s://%s", proto, host))
+	tunnel := tunnelRegistry.get(fmt.Sprintf("%s://%s", proto, host))
 	if tunnel == nil {
 		log.Info("No tunnel found for hostname %s", host)
 		c.Write([]byte(fmt.Sprintf(notFound, len(host)+18, host)))
@@ -133,5 +133,5 @@ func httpHandler(c net.Conn, proto string) {
 	c.SetDeadline(time.Time{})
 
 	// let the tunnel handle the connection now
-	tunnel.HandlePublicConnection(c)
+	tunnel.handlePublicConnection(c)
 }

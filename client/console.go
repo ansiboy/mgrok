@@ -34,16 +34,18 @@ func NewConsole(model *Model) Console {
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	}
+	c.clear["darwin"] = c.clear["linux"]
 
 	return c
 }
 
 func (c Console) callClear() {
-	value, ok := c.clear[runtime.GOOS] //runtime.GOOS -> linux, windows, darwin etc.
-	if ok {                            //if we defined a clear func for that platform:
+	goos := runtime.GOOS
+	value, ok := c.clear[goos] //runtime.GOOS -> linux, windows, darwin etc.
+	if ok {                    //if we defined a clear func for that platform:
 		value() //we execute it
 	} else { //unsupported platform
-		panic("Your platform is unsupported! I can't clear terminal screen :(")
+		panic(fmt.Sprintf("Your platform %s is unsupported! I can't clear terminal screen :(", goos))
 	}
 }
 

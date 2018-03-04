@@ -17,9 +17,9 @@ import (
 var metrics Metrics
 
 func init() {
-	keenApiKey := os.Getenv("KEEN_API_KEY")
+	keenAPIKey := os.Getenv("KEEN_API_KEY")
 
-	if keenApiKey != "" {
+	if keenAPIKey != "" {
 		metrics = newKeenIoMetrics(60 * time.Second)
 	} else {
 		metrics = newLocalMetrics(30 * time.Second)
@@ -157,23 +157,25 @@ func (m *LocalMetrics) report() {
 	}
 }
 
+// KeenIoMetric KeenIoMetric
 type KeenIoMetric struct {
 	Collection string
 	Event      interface{}
 }
 
+// KeenIoMetrics KeenIoMetrics
 type KeenIoMetrics struct {
 	log.Logger
-	ApiKey       string
+	APIKey       string
 	ProjectToken string
-	HttpClient   http.Client
+	HTTPClient   http.Client
 	Metrics      chan *KeenIoMetric
 }
 
 func newKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 	k := &KeenIoMetrics{
 		Logger:       log.NewPrefixLogger("metrics"),
-		ApiKey:       os.Getenv("KEEN_API_KEY"),
+		APIKey:       os.Getenv("KEEN_API_KEY"),
 		ProjectToken: os.Getenv("KEEN_PROJECT_TOKEN"),
 		Metrics:      make(chan *KeenIoMetric, 1000),
 	}
@@ -211,7 +213,7 @@ func newKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 						k.Debug("Reporting %d metrics for %s", len(val), key)
 					}
 
-					k.AuthedRequest("POST", "/events", bytes.NewReader(payload))
+					k.authedRequest("POST", "/events", bytes.NewReader(payload))
 				}
 				batch = make(map[string][]interface{})
 			}
@@ -221,14 +223,14 @@ func newKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 	return k
 }
 
-func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (resp *http.Response, err error) {
+func (k *KeenIoMetrics) authedRequest(method, path string, body *bytes.Reader) (resp *http.Response, err error) {
 	path = fmt.Sprintf("https://api.keen.io/3.0/projects/%s%s", k.ProjectToken, path)
 	req, err := http.NewRequest(method, path, body)
 	if err != nil {
 		return
 	}
 
-	req.Header.Add("Authorization", k.ApiKey)
+	req.Header.Add("Authorization", k.APIKey)
 
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
@@ -236,7 +238,7 @@ func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (
 	}
 
 	requestStartAt := time.Now()
-	resp, err = k.HttpClient.Do(req)
+	resp, err = k.HTTPClient.Do(req)
 
 	if err != nil {
 		k.Error("Failed to send metric event to keen.io %v", err)
@@ -303,28 +305,28 @@ func (k *KeenIoMetrics) closeTunnel(t *Tunnel) {
 	event := struct {
 		Keen      keenStruct `json:"keen"`
 		OS        string
-		ClientId  string
+		ClientID  string
 		Protocol  string
-		Url       string
+		URL       string
 		User      string
 		Version   string
 		Reason    string
 		Duration  float64
-		HttpAuth  bool
+		HTTPAuth  bool
 		Subdomain bool
 	}{
 		Keen: keenStruct{
 			Timestamp: t.start.UTC().Format("2006-01-02T15:04:05.000Z"),
 		},
 		OS:       t.ctl.auth.OS,
-		ClientId: t.ctl.id,
+		ClientID: t.ctl.id,
 		Protocol: t.req.Protocol,
-		Url:      t.url,
+		URL:      t.url,
 		User:     t.ctl.auth.User,
 		Version:  t.ctl.auth.MmVersion,
 		//Reason: reason,
 		Duration:  time.Since(t.start).Seconds(),
-		HttpAuth:  t.req.HTTPAuth != "",
+		HTTPAuth:  t.req.HTTPAuth != "",
 		Subdomain: t.req.Subdomain != "",
 	}
 
