@@ -48,13 +48,12 @@ func Main() {
 	}
 	rand.Seed(seed)
 
-	model := newClientModel(config)
+	modelChan := make(chan *Model)
+	defer close(modelChan)
 
-	console := NewConsole(model)
-	model.updateCallback = func(c *Model) {
-		console.Render()
-	}
+	model := newClientModel(config, modelChan)
 
-	model.Run()
+	go model.Run()
 
+	startConsole(model.changed)
 }
