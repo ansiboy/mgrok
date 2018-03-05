@@ -1,5 +1,0 @@
-http_addr: :8081
-# https_addr: :8082
-domain: t.mgrok.cn
-log_to: stdout
-log_level: debug
