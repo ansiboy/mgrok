@@ -20,7 +20,6 @@ import (
 type Configuration struct {
 	HTTPProxy          string                          `yaml:"http_proxy,omitempty"`
 	ServerAddr         string                          `yaml:"server_addr,omitempty"`
-	InspectAddr        string                          `yaml:"inspect_addr,omitempty"`
 	TrustHostRootCerts bool                            `yaml:"trust_host_root_certs,omitempty"`
 	AuthToken          string                          `yaml:"auth_token,omitempty"`
 	Tunnels            map[string]*TunnelConfiguration `yaml:"tunnels,omitempty"`
@@ -76,19 +75,8 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 		config.ServerAddr = defaultServerAddr
 	}
 
-	if config.InspectAddr == "" {
-		config.InspectAddr = defaultInspectAddr
-	}
-
 	if config.HTTPProxy == "" {
 		config.HTTPProxy = os.Getenv("http_proxy")
-	}
-
-	// validate and normalize configuration
-	if config.InspectAddr != "disabled" {
-		if config.InspectAddr, err = normalizeAddress(config.InspectAddr, "inspect_addr"); err != nil {
-			return
-		}
 	}
 
 	if config.ServerAddr, err = normalizeAddress(config.ServerAddr, "server_addr"); err != nil {
