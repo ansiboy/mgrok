@@ -22,10 +22,8 @@ var defaultPortMap = map[string]int{
 	"smtp":  25,
 }
 
-/**
- * Tunnel: A control connection, metadata and proxy connections which
- *         route public traffic to a firewalled endpoint.
- */
+// Tunnel A control connection, metadata and proxy connections which
+//         route public traffic to a firewalled endpoint.
 type Tunnel struct {
 	// request that opened the tunnel
 	req *msg.ReqTunnel
@@ -53,13 +51,7 @@ type Tunnel struct {
 func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 	vhost := os.Getenv("VHOST")
 	if vhost == "" {
-		// index := strings.Index(opts.domain, ":")
-		// hasPort := index >= 0 //strings.Index(":", opts.domain) >= 0
-		// if hasPort {
-		// 	vhost = opts.domain
-		// } else {
 		vhost = fmt.Sprintf("%s:%d", opts.Domain, servingPort)
-		// }
 	}
 
 	// Canonicalize virtual host by removing default port (e.g. :80 on HTTP)
@@ -80,18 +72,18 @@ func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 	hostname := strings.ToLower(strings.TrimSpace(t.req.Hostname))
 	if hostname != "" {
 		t.url = fmt.Sprintf("%s://%s", protocol, hostname)
-		return tunnelRegistry.Register(t.url, t)
+		return tunnelRegistry.register(t.url, t)
 	}
 
 	// Register for specific subdomain
 	subdomain := strings.ToLower(strings.TrimSpace(t.req.Subdomain))
 	if subdomain != "" {
 		t.url = fmt.Sprintf("%s://%s.%s", protocol, subdomain, vhost)
-		return tunnelRegistry.Register(t.url, t)
+		return tunnelRegistry.register(t.url, t)
 	}
 
 	// Register for random URL
-	t.url, err = tunnelRegistry.RegisterRepeat(func() string {
+	t.url, err = tunnelRegistry.registerRepeat(func() string {
 		return fmt.Sprintf("%s://%x.%s", protocol, rand.Int31(), vhost)
 	}, t)
 
@@ -100,7 +92,7 @@ func registerVhost(t *Tunnel, protocol string, servingPort int) (err error) {
 
 // Create a new tunnel from a registration message received
 // on a control channel
-func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
+func newTCPTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 	t = &Tunnel{
 		req:    m,
 		start:  time.Now(),
@@ -108,7 +100,7 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 		Logger: log.NewPrefixLogger(),
 	}
 
-	bindTcp := func(port int) error {
+	bindTCP := func(port int) error {
 		if t.listener, err = net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: port}); err != nil {
 			err = log.Error("Error binding TCP listener: %v", err)
 			return err
@@ -116,18 +108,10 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 
 		// create the url
 		addr := t.listener.Addr().(*net.TCPAddr)
-
-		// index := strings.Index(opts.domain, ":")
-		// hasPort := index >= 0 //strings.Index("
-		// if hasPort {
-		// 	domain := opts.domain[0:index]
-		// t.url = fmt.Sprintf("tcp://%s:%d", domain, addr.Port)
-		// } else {
 		t.url = fmt.Sprintf("tcp://%s:%d", opts.Domain, addr.Port)
-		// }
 
 		// register it
-		if err = tunnelRegistry.RegisterAndCache(t.url, t); err != nil {
+		if err = tunnelRegistry.registerAndCache(t.url, t); err != nil {
 			// This should never be possible because the OS will
 			// only assign available ports to us.
 			t.listener.Close()
@@ -135,28 +119,28 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 			return err
 		}
 
-		go t.listenTcp(t.listener)
+		go t.listenTCP(t.listener)
 		return nil
 	}
 
 	// use the custom remote port you asked for
 	if t.req.RemotePort != 0 {
-		bindTcp(int(t.req.RemotePort))
+		bindTCP(int(t.req.RemotePort))
 		return
 	}
 
 	// try to return to you the same port you had before
-	cachedUrl := tunnelRegistry.GetCachedRegistration(t)
-	if cachedUrl != "" {
+	cachedURL := tunnelRegistry.getCachedRegistration(t)
+	if cachedURL != "" {
 		var port int
-		parts := strings.Split(cachedUrl, ":")
+		parts := strings.Split(cachedURL, ":")
 		portPart := parts[len(parts)-1]
 		port, err = strconv.Atoi(portPart)
 		if err != nil {
 			log.Error("Failed to parse cached url port as integer: %s", portPart)
 		} else {
 			// we have a valid, cached port, let's try to bind with it
-			if bindTcp(port) != nil {
+			if bindTCP(port) != nil {
 				log.Warn("Failed to get custom port %d: %v, trying a random one", port, err)
 			} else {
 				// success, we're done
@@ -166,14 +150,14 @@ func NewTcpTunnel(m *msg.ReqTunnel, ctl *Control) (t *Tunnel, err error) {
 	}
 
 	// Bind for TCP connections
-	bindTcp(0)
+	bindTCP(0)
 	return
 
 }
 
 // Create a new tunnel from a registration message received
 // on a control channel
-func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel, err error) {
+func newHTTPTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel, err error) {
 	t = &Tunnel{
 		req:    m,
 		start:  time.Now(),
@@ -190,8 +174,8 @@ func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel
 	}
 
 	servingPort := httpAddr.(*net.TCPAddr).Port //l.Addr.(*net.TCPAddr).Port
-	if opts.HttpPulbishPort != "" {
-		servingPort, err = strconv.Atoi(opts.HttpPulbishPort)
+	if opts.HTTPPulbishPort != "" {
+		servingPort, err = strconv.Atoi(opts.HTTPPulbishPort)
 	}
 
 	if err = registerVhost(t, proto, servingPort); err != nil {
@@ -199,18 +183,19 @@ func NewHttpTunnel(m *msg.ReqTunnel, ctl *Control, httpAddr net.Addr) (t *Tunnel
 	}
 
 	// pre-encode the http basic auth for fast comparisons later
-	if m.HttpAuth != "" {
-		m.HttpAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(m.HttpAuth))
+	if m.HTTPAuth != "" {
+		m.HTTPAuth = "Basic " + base64.StdEncoding.EncodeToString([]byte(m.HTTPAuth))
 	}
 
-	// t.AddLogPrefix(t.Id())
-	t.Info("Registered new tunnel on: %s", "another") // t.ctl.conn.Id())
+	t.AddLogPrefix(t.ctl.id)
 
-	metrics.OpenTunnel(t)
+	t.Info("Registered new tunnel on: %s", t.ctl.id) // t.ctl.conn.Id())
+
+	metrics.openTunnel(t)
 	return
 }
 
-func (t *Tunnel) Shutdown() {
+func (t *Tunnel) shutdown() {
 	t.Info("Shutting down")
 
 	// mark that we're shutting down
@@ -222,22 +207,22 @@ func (t *Tunnel) Shutdown() {
 	}
 
 	// remove ourselves from the tunnel registry
-	tunnelRegistry.Del(t.url)
+	tunnelRegistry.del(t.url)
 
 	// let the control connection know we're shutting down
 	// currently, only the control connection shuts down tunnels,
 	// so it doesn't need to know about it
 	// t.ctl.stoptunnel <- t
 
-	metrics.CloseTunnel(t)
+	metrics.closeTunnel(t)
 }
 
-func (t *Tunnel) Id() string {
+func (t *Tunnel) id() string {
 	return t.url
 }
 
 // Listens for new public tcp connections from the internet.
-func (t *Tunnel) listenTcp(listener *net.TCPListener) {
+func (t *Tunnel) listenTCP(listener *net.TCPListener) {
 	for {
 		defer func() {
 			if r := recover(); r != nil {
@@ -262,11 +247,11 @@ func (t *Tunnel) listenTcp(listener *net.TCPListener) {
 		// conn.AddLogPrefix(t.Id())
 		log.Info("New connection from %v", conn.RemoteAddr())
 
-		go t.HandlePublicConnection(conn)
+		go t.handlePublicConnection(conn)
 	}
 }
 
-func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
+func (t *Tunnel) handlePublicConnection(publicConn net.Conn) {
 	defer publicConn.Close()
 	defer func() {
 		if r := recover(); r != nil {
@@ -275,7 +260,7 @@ func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
 	}()
 
 	startTime := time.Now()
-	metrics.OpenConnection(t, publicConn)
+	metrics.openConnection(t, publicConn)
 
 	var proxyConn net.Conn
 	var err error
@@ -319,5 +304,5 @@ func (t *Tunnel) HandlePublicConnection(publicConn net.Conn) {
 
 	// join the public and proxy connections
 	bytesIn, bytesOut := conn.Join(publicConn, proxyConn)
-	metrics.CloseConnection(t, publicConn, startTime, bytesIn, bytesOut)
+	metrics.closeConnection(t, publicConn, startTime, bytesIn, bytesOut)
 }

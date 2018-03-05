@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"math"
-	"mgrok/client/mvc"
 	"mgrok/conn"
 	"mgrok/log"
 	"mgrok/msg"
@@ -15,16 +14,17 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ansiboy/mgrok/src/ngrok/client/mvc"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
 const (
-	defaultServerAddr   = "t.mgrok.cn:443"
+	defaultServerAddr   = "t.mgrok.cn:4443"
 	defaultInspectAddr  = "127.0.0.1:4040"
 	pingInterval        = 20 * time.Second
 	maxPongLatency      = 15 * time.Second
 	updateCheckInterval = 6 * time.Hour
-	BadGateway          = `<html>
+	badGateway          = `<html>
 <body style="background-color: #97a8b9">
     <div style="margin:auto; width:400px;padding: 20px 60px; background-color: #D3D3D3; border: 5px solid maroon;">
         <h2>Tunnel %s unavailable</h2>
@@ -32,88 +32,60 @@ const (
 `
 )
 
-type ClientModel struct {
+// Model client model
+type Model struct {
 	log.Logger
-
 	id            string
 	tunnels       map[string]mvc.Tunnel
 	serverVersion string
-	metrics       *ClientMetrics
+	metrics       *Metrics
 	updateStatus  mvc.UpdateStatus
 	connStatus    mvc.ConnStatus
-	// protoMap      map[string]proto.Protocol
-	// protocols []proto.Protocol
-	// ctl           *Controller
-	serverAddr string
-	proxyUrl   string
-	authToken  string
-	// tlsConfig     *tls.Config
-	tunnelConfig map[string]*TunnelConfiguration
-	configPath   string
+	serverAddr    string
+	proxyURL      string
+	authToken     string
+	tunnelConfig  map[string]*TunnelConfiguration
+	configPath    string
+	changed       chan *Model
+	// updateCallback func(c *Model)
 }
 
-func newClientModel(config *Configuration) *ClientModel {
-	// protoMap := make(map[string]proto.Protocol)
-	// protoMap["http"] = proto.NewHttp()
-	// protoMap["https"] = protoMap["http"]
-	// protoMap["tcp"] = proto.NewTcp()
-	// protocols := []proto.Protocol{protoMap["http"], protoMap["tcp"]}
+func newClientModel(config *Configuration, changed chan *Model) *Model {
 
-	m := &ClientModel{
+	m := &Model{
 		Logger: log.NewPrefixLogger("client"),
 
 		// server address
 		serverAddr: config.ServerAddr,
 
 		// proxy address
-		proxyUrl: config.HttpProxy,
+		proxyURL: config.HTTPProxy,
 
 		// auth token
 		authToken: config.AuthToken,
 
 		// connection status
-		connStatus: mvc.ConnConnecting,
+		connStatus: ConnConnecting,
 
 		// update status
-		updateStatus: mvc.UpdateNone,
+		updateStatus: UpdateNone,
 
 		// metrics
 		metrics: NewClientMetrics(),
 
-		// protocols
-		// protoMap: protoMap,
-
-		// protocol list
-		// protocols: protocols,
-
 		// open tunnels
-		tunnels: make(map[string]mvc.Tunnel),
-
-		// controller
-		// ctl: ctl,
+		tunnels: make(map[string]Tunnel),
 
 		// tunnel configuration
 		tunnelConfig: config.Tunnels,
 
 		// config path
 		configPath: config.Path,
+
+		changed: changed,
 	}
 
-	// configure TLS
-	// if config.TrustHostRootCerts {
-	// 	m.Info("Trusting host's root certificates")
-	// 	m.tlsConfig = &tls.Config{}
-	// } else {
-	// 	m.Info("Trusting root CAs: %v", rootCrtPaths)
-	// 	var err error
-	// 	if m.tlsConfig, err = LoadTLSConfig(rootCrtPaths); err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
-	// configure TLS SNI
-	// m.tlsConfig.ServerName = serverName(m.serverAddr)
-	// m.tlsConfig.InsecureSkipVerify = useInsecureSkipVerify()
+	// defer close(m.changed)
 
 	return m
 }
@@ -130,59 +102,57 @@ func serverName(addr string) string {
 	return host
 }
 
-// mvc.State interface
-// func (c ClientModel) GetProtocols() []proto.Protocol { return c.protocols }
-func (c ClientModel) GetClientVersion() string { return version.MajorMinor() }
-func (c ClientModel) GetServerVersion() string { return c.serverVersion }
-func (c ClientModel) GetTunnels() []mvc.Tunnel {
-	tunnels := make([]mvc.Tunnel, 0)
+// GetClientVersion get client version
+func (c Model) GetClientVersion() string { return version.MajorMinor() }
+
+// GetServerVersion get server version
+func (c Model) GetServerVersion() string { return c.serverVersion }
+
+// GetTunnels get tunnels
+func (c Model) GetTunnels() []Tunnel {
+	tunnels := make([]Tunnel, 0)
 	for _, t := range c.tunnels {
 		tunnels = append(tunnels, t)
 	}
 	return tunnels
 }
-func (c ClientModel) GetConnStatus() mvc.ConnStatus     { return c.connStatus }
-func (c ClientModel) GetUpdateStatus() mvc.UpdateStatus { return c.updateStatus }
 
-func (c ClientModel) GetConnectionMetrics() (metrics.Meter, metrics.Timer) {
+// GetConnStatus get connection status
+func (c Model) GetConnStatus() ConnStatus { return c.connStatus }
+
+// GetUpdateStatus client update status
+func (c Model) GetUpdateStatus() UpdateStatus { return c.updateStatus }
+
+// GetConnectionMetrics connection metrics
+func (c Model) GetConnectionMetrics() (metrics.Meter, metrics.Timer) {
 	return c.metrics.connMeter, c.metrics.connTimer
 }
 
-func (c ClientModel) GetBytesInMetrics() (metrics.Counter, metrics.Histogram) {
+// GetBytesInMetrics bytes in metrics
+func (c Model) GetBytesInMetrics() (metrics.Counter, metrics.Histogram) {
 	return c.metrics.bytesInCount, c.metrics.bytesIn
 }
 
-func (c ClientModel) GetBytesOutMetrics() (metrics.Counter, metrics.Histogram) {
+// GetBytesOutMetrics bytes out metrics
+func (c Model) GetBytesOutMetrics() (metrics.Counter, metrics.Histogram) {
 	return c.metrics.bytesOutCount, c.metrics.bytesOut
 }
-func (c ClientModel) SetUpdateStatus(updateStatus mvc.UpdateStatus) {
+
+// SetUpdateStatus set update status
+func (c Model) SetUpdateStatus(updateStatus UpdateStatus) {
 	c.updateStatus = updateStatus
 	c.update()
 }
 
-// // mvc.Model interface
-// func (c *ClientModel) PlayRequest(tunnel mvc.Tunnel, payload []byte) {
-// 	var localConn net.Conn
-// 	localConn, err := conn.Dial(tunnel.LocalAddr, "prv")
-// 	if err != nil {
-// 		c.Warn("Failed to open private leg to %s: %v", tunnel.LocalAddr, err)
-// 		return
-// 	}
-
-// 	defer localConn.Close()
-// 	localConn = tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: "127.0.0.1"})
-// 	localConn.Write(payload)
-// 	ioutil.ReadAll(localConn)
-// }
-
-func (c *ClientModel) Shutdown() {
+func (c *Model) update() {
+	// if c.updateCallback != nil {
+	// 	c.updateCallback(c)
+	// }
+	c.changed <- c
 }
 
-func (c *ClientModel) update() {
-	// c.ctl.Update(c)
-}
-
-func (c *ClientModel) Run() {
+// Run run
+func (c *Model) Run() {
 	// how long we should wait before we reconnect
 	maxWait := 30 * time.Second
 	wait := 1 * time.Second
@@ -192,7 +162,7 @@ func (c *ClientModel) Run() {
 		c.control()
 
 		// control only returns when a failure has occurred, so we're going to try to reconnect
-		if c.connStatus == mvc.ConnOnline {
+		if c.connStatus == ConnOnline {
 			wait = 1 * time.Second
 		}
 
@@ -201,13 +171,13 @@ func (c *ClientModel) Run() {
 		// exponentially increase wait time
 		wait = 2 * wait
 		wait = time.Duration(math.Min(float64(wait), float64(maxWait)))
-		c.connStatus = mvc.ConnReconnecting
+		c.connStatus = ConnReconnecting
 		c.update()
 	}
 }
 
 // Establishes and manages a tunnel control connection with the server
-func (c *ClientModel) control() {
+func (c *Model) control() {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("control recovering from failure %v", r)
@@ -219,11 +189,11 @@ func (c *ClientModel) control() {
 		ctlConn net.Conn
 		err     error
 	)
-	if c.proxyUrl == "" {
+	if c.proxyURL == "" {
 		// simple non-proxied case, just connect to the server
 		ctlConn, err = conn.Dial(c.serverAddr, "ctl")
 	} else {
-		ctlConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "ctl")
+		ctlConn, err = conn.DialHttpProxy(c.proxyURL, c.serverAddr, "ctl")
 	}
 	if err != nil {
 		panic(err)
@@ -268,11 +238,11 @@ func (c *ClientModel) control() {
 	}
 
 	// request tunnels
-	reqIdToTunnelConfig := make(map[string]*TunnelConfiguration)
+	reqIDToTunnelConfig := make(map[string]*TunnelConfiguration)
 	for _, config := range c.tunnelConfig {
 		// create the protocol list to ask for
 		var protocols []string
-		for proto, _ := range config.Protocols {
+		for proto := range config.Protocols {
 			protocols = append(protocols, proto)
 		}
 
@@ -281,7 +251,7 @@ func (c *ClientModel) control() {
 			Protocol:   strings.Join(protocols, "+"),
 			Hostname:   config.Hostname,
 			Subdomain:  config.Subdomain,
-			HttpAuth:   config.HttpAuth,
+			HTTPAuth:   config.HTTPAuth,
 			RemotePort: config.RemotePort,
 		}
 
@@ -292,7 +262,7 @@ func (c *ClientModel) control() {
 
 		// save request id association so we know which local address
 		// to proxy to later
-		reqIdToTunnelConfig[reqTunnel.ReqId] = config
+		reqIDToTunnelConfig[reqTunnel.ReqId] = config
 	}
 
 	// start the heartbeat
@@ -325,15 +295,15 @@ func (c *ClientModel) control() {
 				continue
 			}
 
-			tunnel := mvc.Tunnel{
+			tunnel := Tunnel{
 				PublicUrl: m.Url,
-				LocalAddr: reqIdToTunnelConfig[m.ReqId].Protocols[m.Protocol],
+				LocalAddr: reqIDToTunnelConfig[m.ReqId].Protocols[m.Protocol],
 				// Protocol:  c.protoMap[m.Protocol],
 				Type: m.Protocol,
 			}
 
 			c.tunnels[tunnel.PublicUrl] = tunnel
-			c.connStatus = mvc.ConnOnline
+			c.connStatus = ConnOnline
 			c.Info("Tunnel established at %v", tunnel.PublicUrl)
 			c.update()
 
@@ -344,16 +314,16 @@ func (c *ClientModel) control() {
 }
 
 // Establishes and manages a tunnel proxy connection with the server
-func (c *ClientModel) proxy() {
+func (c *Model) proxy() {
 	var (
 		remoteConn net.Conn
 		err        error
 	)
 
-	if c.proxyUrl == "" {
+	if c.proxyURL == "" {
 		remoteConn, err = conn.Dial(c.serverAddr, "pxy")
 	} else {
-		remoteConn, err = conn.DialHttpProxy(c.proxyUrl, c.serverAddr, "pxy")
+		remoteConn, err = conn.DialHttpProxy(c.proxyURL, c.serverAddr, "pxy")
 	}
 
 	if err != nil {
@@ -389,7 +359,7 @@ func (c *ClientModel) proxy() {
 
 		if tunnel.Type == "http" { //tunnel.Protocol.GetName() == "http"
 			// try to be helpful when you're in HTTP mode and a human might see the output
-			badGatewayBody := fmt.Sprintf(BadGateway, tunnel.PublicUrl, tunnel.LocalAddr, tunnel.LocalAddr)
+			badGatewayBody := fmt.Sprintf(badGateway, tunnel.PublicUrl, tunnel.LocalAddr, tunnel.LocalAddr)
 			remoteConn.Write([]byte(fmt.Sprintf(`HTTP/1.0 502 Bad Gateway
 Content-Type: text/html
 Content-Length: %d
@@ -405,7 +375,7 @@ Content-Length: %d
 	m.connMeter.Mark(1)
 	c.update()
 	m.connTimer.Time(func() {
-		localConn := localConn //tunnel.Protocol.WrapConn(localConn, mvc.ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
+		localConn := localConn //tunnel.Protocol.WrapConn(localConn, ConnectionContext{Tunnel: tunnel, ClientAddr: startPxy.ClientAddr})
 		bytesIn, bytesOut := conn.Join(localConn, remoteConn)
 		m.bytesIn.Update(bytesIn)
 		m.bytesOut.Update(bytesOut)
@@ -416,13 +386,12 @@ Content-Length: %d
 }
 
 // Hearbeating to ensure our connection ngrokd is still live
-func (c *ClientModel) heartbeat(lastPongAddr *int64, conn net.Conn) {
+func (c *Model) heartbeat(lastPongAddr *int64, conn net.Conn) {
 	lastPing := time.Unix(atomic.LoadInt64(lastPongAddr)-1, 0)
 	ping := time.NewTicker(pingInterval)
 	pongCheck := time.NewTicker(time.Second)
 
 	defer func() {
-		// conn.Close()
 		ping.Stop()
 		pongCheck.Stop()
 	}()

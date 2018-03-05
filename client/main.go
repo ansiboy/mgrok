@@ -15,7 +15,7 @@ import (
 func init() {
 	if runtime.GOOS == "windows" {
 		if mousetrap.StartedByExplorer() {
-			fmt.Println("Don't double-click ngrok!")
+			fmt.Println("Don't double-click mgrok!")
 			fmt.Println("You need to open cmd.exe and run it from the command line!")
 			time.Sleep(5 * time.Second)
 			os.Exit(1)
@@ -23,6 +23,7 @@ func init() {
 	}
 }
 
+// Main clinet main function
 func Main() {
 	opts, err := ParseArgs()
 	if err != nil {
@@ -30,7 +31,7 @@ func Main() {
 		os.Exit(1)
 	}
 	// set up logging
-	log.LogTo(opts.logto, opts.loglevel)
+	log.LogTo(opts.log, opts.loglevel)
 
 	// read configuration file
 	config, err := LoadConfiguration(opts)
@@ -47,6 +48,12 @@ func Main() {
 	}
 	rand.Seed(seed)
 
-	model := newClientModel(config)
-	model.Run()
+	modelChan := make(chan *Model)
+	defer close(modelChan)
+
+	model := newClientModel(config, modelChan)
+
+	go model.Run()
+
+	startConsole(model.changed)
 }

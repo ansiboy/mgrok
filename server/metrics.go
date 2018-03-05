@@ -17,23 +17,25 @@ import (
 var metrics Metrics
 
 func init() {
-	keenApiKey := os.Getenv("KEEN_API_KEY")
+	keenAPIKey := os.Getenv("KEEN_API_KEY")
 
-	if keenApiKey != "" {
-		metrics = NewKeenIoMetrics(60 * time.Second)
+	if keenAPIKey != "" {
+		metrics = newKeenIoMetrics(60 * time.Second)
 	} else {
-		metrics = NewLocalMetrics(30 * time.Second)
+		metrics = newLocalMetrics(30 * time.Second)
 	}
 }
 
+// Metrics metrics
 type Metrics interface {
 	log.Logger
-	OpenConnection(*Tunnel, net.Conn)
-	CloseConnection(*Tunnel, net.Conn, time.Time, int64, int64)
-	OpenTunnel(*Tunnel)
-	CloseTunnel(*Tunnel)
+	openConnection(*Tunnel, net.Conn)
+	closeConnection(*Tunnel, net.Conn, time.Time, int64, int64)
+	openTunnel(*Tunnel)
+	closeTunnel(*Tunnel)
 }
 
+// LocalMetrics local metrics
 type LocalMetrics struct {
 	log.Logger
 	reportInterval time.Duration
@@ -60,7 +62,7 @@ type LocalMetrics struct {
 	*/
 }
 
-func NewLocalMetrics(reportInterval time.Duration) *LocalMetrics {
+func newLocalMetrics(reportInterval time.Duration) *LocalMetrics {
 	metrics := LocalMetrics{
 		Logger:         log.NewPrefixLogger("metrics"),
 		reportInterval: reportInterval,
@@ -87,12 +89,12 @@ func NewLocalMetrics(reportInterval time.Duration) *LocalMetrics {
 		*/
 	}
 
-	go metrics.Report()
+	go metrics.report()
 
 	return &metrics
 }
 
-func (m *LocalMetrics) OpenTunnel(t *Tunnel) {
+func (m *LocalMetrics) openTunnel(t *Tunnel) {
 	m.tunnelMeter.Mark(1)
 
 	switch t.ctl.auth.OS {
@@ -114,19 +116,19 @@ func (m *LocalMetrics) OpenTunnel(t *Tunnel) {
 	}
 }
 
-func (m *LocalMetrics) CloseTunnel(t *Tunnel) {
+func (m *LocalMetrics) closeTunnel(t *Tunnel) {
 }
 
-func (m *LocalMetrics) OpenConnection(t *Tunnel, c net.Conn) {
+func (m *LocalMetrics) openConnection(t *Tunnel, c net.Conn) {
 	m.connMeter.Mark(1)
 }
 
-func (m *LocalMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, bytesIn, bytesOut int64) {
+func (m *LocalMetrics) closeConnection(t *Tunnel, c net.Conn, start time.Time, bytesIn, bytesOut int64) {
 	m.bytesInCount.Inc(bytesIn)
 	m.bytesOutCount.Inc(bytesOut)
 }
 
-func (m *LocalMetrics) Report() {
+func (m *LocalMetrics) report() {
 	m.Info("Reporting every %d seconds", int(m.reportInterval.Seconds()))
 
 	for {
@@ -155,23 +157,25 @@ func (m *LocalMetrics) Report() {
 	}
 }
 
+// KeenIoMetric KeenIoMetric
 type KeenIoMetric struct {
 	Collection string
 	Event      interface{}
 }
 
+// KeenIoMetrics KeenIoMetrics
 type KeenIoMetrics struct {
 	log.Logger
-	ApiKey       string
+	APIKey       string
 	ProjectToken string
-	HttpClient   http.Client
+	HTTPClient   http.Client
 	Metrics      chan *KeenIoMetric
 }
 
-func NewKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
+func newKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 	k := &KeenIoMetrics{
 		Logger:       log.NewPrefixLogger("metrics"),
-		ApiKey:       os.Getenv("KEEN_API_KEY"),
+		APIKey:       os.Getenv("KEEN_API_KEY"),
 		ProjectToken: os.Getenv("KEEN_PROJECT_TOKEN"),
 		Metrics:      make(chan *KeenIoMetric, 1000),
 	}
@@ -209,7 +213,7 @@ func NewKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 						k.Debug("Reporting %d metrics for %s", len(val), key)
 					}
 
-					k.AuthedRequest("POST", "/events", bytes.NewReader(payload))
+					k.authedRequest("POST", "/events", bytes.NewReader(payload))
 				}
 				batch = make(map[string][]interface{})
 			}
@@ -219,14 +223,14 @@ func NewKeenIoMetrics(batchInterval time.Duration) *KeenIoMetrics {
 	return k
 }
 
-func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (resp *http.Response, err error) {
+func (k *KeenIoMetrics) authedRequest(method, path string, body *bytes.Reader) (resp *http.Response, err error) {
 	path = fmt.Sprintf("https://api.keen.io/3.0/projects/%s%s", k.ProjectToken, path)
 	req, err := http.NewRequest(method, path, body)
 	if err != nil {
 		return
 	}
 
-	req.Header.Add("Authorization", k.ApiKey)
+	req.Header.Add("Authorization", k.APIKey)
 
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
@@ -234,7 +238,7 @@ func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (
 	}
 
 	requestStartAt := time.Now()
-	resp, err = k.HttpClient.Do(req)
+	resp, err = k.HTTPClient.Do(req)
 
 	if err != nil {
 		k.Error("Failed to send metric event to keen.io %v", err)
@@ -250,36 +254,36 @@ func (k *KeenIoMetrics) AuthedRequest(method, path string, body *bytes.Reader) (
 	return
 }
 
-func (k *KeenIoMetrics) OpenConnection(t *Tunnel, c net.Conn) {
+func (k *KeenIoMetrics) openConnection(t *Tunnel, c net.Conn) {
 }
 
-func (k *KeenIoMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, in, out int64) {
+func (k *KeenIoMetrics) closeConnection(t *Tunnel, c net.Conn, start time.Time, in, out int64) {
 	event := struct {
-		Keen               KeenStruct `json:"keen"`
+		Keen               keenStruct `json:"keen"`
 		OS                 string
-		ClientId           string
+		ClientID           string
 		Protocol           string
-		Url                string
+		URL                string
 		User               string
 		Version            string
 		Reason             string
-		HttpAuth           bool
+		HTTPAuth           bool
 		Subdomain          bool
 		TunnelDuration     float64
 		ConnectionDuration float64
 		BytesIn            int64
 		BytesOut           int64
 	}{
-		Keen: KeenStruct{
+		Keen: keenStruct{
 			Timestamp: start.UTC().Format("2006-01-02T15:04:05.000Z"),
 		},
 		OS:                 t.ctl.auth.OS,
-		ClientId:           t.ctl.id,
+		ClientID:           t.ctl.id,
 		Protocol:           t.req.Protocol,
-		Url:                t.url,
+		URL:                t.url,
 		User:               t.ctl.auth.User,
 		Version:            t.ctl.auth.MmVersion,
-		HttpAuth:           t.req.HttpAuth != "",
+		HTTPAuth:           t.req.HTTPAuth != "",
 		Subdomain:          t.req.Subdomain != "",
 		TunnelDuration:     time.Since(t.start).Seconds(),
 		ConnectionDuration: time.Since(start).Seconds(),
@@ -290,39 +294,39 @@ func (k *KeenIoMetrics) CloseConnection(t *Tunnel, c net.Conn, start time.Time, 
 	k.Metrics <- &KeenIoMetric{Collection: "CloseConnection", Event: event}
 }
 
-func (k *KeenIoMetrics) OpenTunnel(t *Tunnel) {
+func (k *KeenIoMetrics) openTunnel(t *Tunnel) {
 }
 
-type KeenStruct struct {
+type keenStruct struct {
 	Timestamp string `json:"timestamp"`
 }
 
-func (k *KeenIoMetrics) CloseTunnel(t *Tunnel) {
+func (k *KeenIoMetrics) closeTunnel(t *Tunnel) {
 	event := struct {
-		Keen      KeenStruct `json:"keen"`
+		Keen      keenStruct `json:"keen"`
 		OS        string
-		ClientId  string
+		ClientID  string
 		Protocol  string
-		Url       string
+		URL       string
 		User      string
 		Version   string
 		Reason    string
 		Duration  float64
-		HttpAuth  bool
+		HTTPAuth  bool
 		Subdomain bool
 	}{
-		Keen: KeenStruct{
+		Keen: keenStruct{
 			Timestamp: t.start.UTC().Format("2006-01-02T15:04:05.000Z"),
 		},
 		OS:       t.ctl.auth.OS,
-		ClientId: t.ctl.id,
+		ClientID: t.ctl.id,
 		Protocol: t.req.Protocol,
-		Url:      t.url,
+		URL:      t.url,
 		User:     t.ctl.auth.User,
 		Version:  t.ctl.auth.MmVersion,
 		//Reason: reason,
 		Duration:  time.Since(t.start).Seconds(),
-		HttpAuth:  t.req.HttpAuth != "",
+		HTTPAuth:  t.req.HTTPAuth != "",
 		Subdomain: t.req.Subdomain != "",
 	}
 

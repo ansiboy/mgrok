@@ -21,6 +21,7 @@ const (
 	proxyMaxPoolSize    = 10
 )
 
+// Control control
 type Control struct {
 	// auth message
 	auth *msg.Auth
@@ -63,7 +64,8 @@ type Control struct {
 	httpAddr net.Addr
 }
 
-func NewControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
+// NewControl Create Control object
+func newControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	var err error
 
 	// create the object
@@ -101,12 +103,12 @@ func NewControl(ctlConn net.Conn, authMsg *msg.Auth, httpAddr net.Addr) {
 	// ctlConn.AddLogPrefix(c.id)
 
 	if authMsg.Version != version.Proto {
-		failAuth(fmt.Errorf("Incompatible versions. Server %s, client %s. Download a new version at http://ngrok.com", version.MajorMinor(), authMsg.Version))
+		failAuth(fmt.Errorf("Incompatible versions. Server %s, client %s. Download a new version at http://mgrok.cn", version.MajorMinor(), authMsg.Version))
 		return
 	}
 
 	// register the control
-	if replaced := controlRegistry.Add(c.id, c); replaced != nil {
+	if replaced := controlRegistry.add(c.id, c); replaced != nil {
 		replaced.shutdown.WaitComplete()
 	}
 
@@ -141,9 +143,9 @@ func (c *Control) registerTunnel(rawTunnelReq *msg.ReqTunnel) {
 		var err error
 		var protocol = rawTunnelReq.Protocol
 		if protocol == "http" {
-			t, err = NewHttpTunnel(&tunnelReq, c, c.httpAddr)
+			t, err = newHTTPTunnel(&tunnelReq, c, c.httpAddr)
 		} else if protocol == "tcp" {
-			t, err = NewTcpTunnel(&tunnelReq, c)
+			t, err = newTCPTunnel(&tunnelReq, c)
 		} else {
 			err = fmt.Errorf("Protocol %s is not supported", proto)
 		}
@@ -180,10 +182,14 @@ func (c *Control) manager() {
 	}()
 
 	// kill everything if the control manager stops
-	defer c.shutdown.Begin()
+	defer func() {
+		c.shutdown.Begin()
+	}()
 
 	// notify that manager() has shutdown
-	defer c.managerShutdown.Complete()
+	defer func() {
+		c.managerShutdown.Complete()
+	}()
 
 	// reaping timer for detecting heartbeat failure
 	reap := time.NewTicker(connReapInterval)
@@ -256,9 +262,10 @@ func (c *Control) reader() {
 			if err == io.EOF {
 				log.Info("EOF")
 				return
-			} else {
-				panic(err)
 			}
+
+			panic(err)
+
 		} else {
 			// this can also panic during shutdown
 			c.in <- msg
@@ -277,7 +284,7 @@ func (c *Control) stopper() {
 	c.shutdown.WaitBegin()
 
 	// remove ourself from the control registry
-	controlRegistry.Del(c.id)
+	controlRegistry.del(c.id)
 
 	// shutdown manager() so that we have no more work to do
 	close(c.in)
@@ -292,7 +299,7 @@ func (c *Control) stopper() {
 
 	// shutdown all of the tunnels
 	for _, t := range c.tunnels {
-		t.Shutdown()
+		t.shutdown()
 	}
 
 	// shutdown all of the proxy connections
@@ -305,6 +312,7 @@ func (c *Control) stopper() {
 	log.Info("Shutdown complete")
 }
 
+// RegisterProxy register proxy
 func (c *Control) RegisterProxy(conn net.Conn) {
 	// conn.AddLogPrefix(c.id)
 
@@ -318,6 +326,7 @@ func (c *Control) RegisterProxy(conn net.Conn) {
 	}
 }
 
+// GetProxy get proxy
 // Remove a proxy connection from the pool and return it
 // If not proxy connections are in the pool, request one
 // and wait until it is available
@@ -355,6 +364,7 @@ func (c *Control) GetProxy() (proxyConn net.Conn, err error) {
 	return
 }
 
+// Replaced replace
 // Called when this control is replaced by another control
 // this can happen if the network drops out and the client reconnects
 // before the old tunnel has lost its heartbeat

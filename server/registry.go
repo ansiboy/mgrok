@@ -14,9 +14,9 @@ const (
 	cacheSaveInterval time.Duration = 10 * time.Minute
 )
 
-type cacheUrl string
+type cacheURL string
 
-func (url cacheUrl) Size() int {
+func (url cacheURL) Size() int {
 	return len(url)
 }
 
@@ -28,7 +28,7 @@ type TunnelRegistry struct {
 	sync.RWMutex
 }
 
-func NewTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
+func newTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
 	registry := &TunnelRegistry{
 		tunnels:  make(map[string]*Tunnel),
 		affinity: cache.NewLRUCache(cacheSize),
@@ -39,7 +39,7 @@ func NewTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
 	// to encode or decode any non-primitive types that haven't been "registered"
 	// with it. Since we store cacheUrl objects, we need to register them here first
 	// for the encoding/decoding to work
-	var urlobj cacheUrl
+	var urlobj cacheURL
 	gob.Register(urlobj)
 
 	// try to load and then periodically save the affinity cache to file, if specified
@@ -49,7 +49,7 @@ func NewTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
 			registry.Error("Failed to load affinity cache %s: %v", cacheFile, err)
 		}
 
-		registry.SaveCacheThread(cacheFile, cacheSaveInterval)
+		registry.saveCacheThread(cacheFile, cacheSaveInterval)
 	} else {
 		registry.Info("No affinity cache specified")
 	}
@@ -58,7 +58,7 @@ func NewTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
 }
 
 // Spawns a goroutine the periodically saves the cache to a file.
-func (r *TunnelRegistry) SaveCacheThread(path string, interval time.Duration) {
+func (r *TunnelRegistry) saveCacheThread(path string, interval time.Duration) {
 	go func() {
 		r.Info("Saving affinity cache to %s every %s", path, interval.String())
 		for {
@@ -75,14 +75,14 @@ func (r *TunnelRegistry) SaveCacheThread(path string, interval time.Duration) {
 	}()
 }
 
-// Register a tunnel with a specific url, returns an error
+// register a tunnel with a specific url, returns an error
 // if a tunnel is already registered at that url
-func (r *TunnelRegistry) Register(url string, t *Tunnel) error {
+func (r *TunnelRegistry) register(url string, t *Tunnel) error {
 	r.Lock()
 	defer r.Unlock()
 
 	if r.tunnels[url] != nil {
-		return fmt.Errorf("The tunnel %s is already registered.", url)
+		return fmt.Errorf("The tunnel %s is already registered.\r", url)
 	}
 
 	r.tunnels[url] = t
@@ -91,35 +91,35 @@ func (r *TunnelRegistry) Register(url string, t *Tunnel) error {
 }
 
 func (r *TunnelRegistry) cacheKeys(t *Tunnel) (ip string, id string) {
-	clientIp := t.ctl.conn.RemoteAddr().(*net.TCPAddr).IP.String()
-	clientId := t.ctl.id
+	clientIP := t.ctl.conn.RemoteAddr().(*net.TCPAddr).IP.String()
+	clientID := t.ctl.id
 
-	ipKey := fmt.Sprintf("client-ip-%s:%s", t.req.Protocol, clientIp)
-	idKey := fmt.Sprintf("client-id-%s:%s", t.req.Protocol, clientId)
+	ipKey := fmt.Sprintf("client-ip-%s:%s", t.req.Protocol, clientIP)
+	idKey := fmt.Sprintf("client-id-%s:%s", t.req.Protocol, clientID)
 	return ipKey, idKey
 }
 
-func (r *TunnelRegistry) GetCachedRegistration(t *Tunnel) (url string) {
+func (r *TunnelRegistry) getCachedRegistration(t *Tunnel) (url string) {
 	ipCacheKey, idCacheKey := r.cacheKeys(t)
 
 	// check cache for ID first, because we prefer that over IP which might
 	// not be specific to a user because of NATs
 	if v, ok := r.affinity.Get(idCacheKey); ok {
-		url = string(v.(cacheUrl))
+		url = string(v.(cacheURL))
 		t.Debug("Found registry affinity %s for %s", url, idCacheKey)
 	} else if v, ok := r.affinity.Get(ipCacheKey); ok {
-		url = string(v.(cacheUrl))
+		url = string(v.(cacheURL))
 		t.Debug("Found registry affinity %s for %s", url, ipCacheKey)
 	}
 	return
 }
 
-func (r *TunnelRegistry) RegisterAndCache(url string, t *Tunnel) (err error) {
-	if err = r.Register(url, t); err == nil {
+func (r *TunnelRegistry) registerAndCache(url string, t *Tunnel) (err error) {
+	if err = r.register(url, t); err == nil {
 		// we successfully assigned a url, cache it
 		ipCacheKey, idCacheKey := r.cacheKeys(t)
-		r.affinity.Set(ipCacheKey, cacheUrl(url))
-		r.affinity.Set(idCacheKey, cacheUrl(url))
+		r.affinity.Set(ipCacheKey, cacheURL(url))
+		r.affinity.Set(idCacheKey, cacheURL(url))
 	}
 	return
 
@@ -128,15 +128,15 @@ func (r *TunnelRegistry) RegisterAndCache(url string, t *Tunnel) (err error) {
 // Register a tunnel with the following process:
 // Consult the affinity cache to try to assign a previously used tunnel url if possible
 // Generate new urls repeatedly with the urlFn and register until one is available.
-func (r *TunnelRegistry) RegisterRepeat(urlFn func() string, t *Tunnel) (string, error) {
-	url := r.GetCachedRegistration(t)
+func (r *TunnelRegistry) registerRepeat(urlFn func() string, t *Tunnel) (string, error) {
+	url := r.getCachedRegistration(t)
 	if url == "" {
 		url = urlFn()
 	}
 
 	maxAttempts := 5
 	for i := 0; i < maxAttempts; i++ {
-		if err := r.RegisterAndCache(url, t); err != nil {
+		if err := r.registerAndCache(url, t); err != nil {
 			// pick a new url and try again
 			url = urlFn()
 		} else {
@@ -145,17 +145,17 @@ func (r *TunnelRegistry) RegisterRepeat(urlFn func() string, t *Tunnel) (string,
 		}
 	}
 
-	return "", fmt.Errorf("Failed to assign a URL after %d attempts!", maxAttempts)
+	return "", fmt.Errorf("Failed to assign a URL after %d attempts!\r", maxAttempts)
 }
 
-func (r *TunnelRegistry) Del(url string) {
+func (r *TunnelRegistry) del(url string) {
 	r.Lock()
 	defer r.Unlock()
 	r.Debug("Delete tunnel named %s.", url)
 	delete(r.tunnels, url)
 }
 
-func (r *TunnelRegistry) Get(url string) *Tunnel {
+func (r *TunnelRegistry) get(url string) *Tunnel {
 	r.RLock()
 	defer r.RUnlock()
 	return r.tunnels[url]
@@ -168,41 +168,42 @@ type ControlRegistry struct {
 	sync.RWMutex
 }
 
-func NewControlRegistry() *ControlRegistry {
+func newControlRegistry() *ControlRegistry {
 	return &ControlRegistry{
 		controls: make(map[string]*Control),
 		Logger:   log.NewPrefixLogger("registry", "ctl"),
 	}
 }
 
-func (r *ControlRegistry) Get(clientId string) *Control {
+func (r *ControlRegistry) get(clientID string) *Control {
 	r.RLock()
 	defer r.RUnlock()
-	return r.controls[clientId]
+	return r.controls[clientID]
 }
 
-func (r *ControlRegistry) Add(clientId string, ctl *Control) (oldCtl *Control) {
+func (r *ControlRegistry) add(clientID string, ctl *Control) (oldCtl *Control) {
 	r.Lock()
 	defer r.Unlock()
 
-	oldCtl = r.controls[clientId]
+	oldCtl = r.controls[clientID]
 	if oldCtl != nil {
 		oldCtl.Replaced(ctl)
 	}
 
-	r.controls[clientId] = ctl
-	r.Info("Registered control with id %s", clientId)
+	r.controls[clientID] = ctl
+	r.Info("Registered control with id %s", clientID)
 	return
 }
 
-func (r *ControlRegistry) Del(clientId string) error {
+func (r *ControlRegistry) del(clientID string) error {
 	r.Lock()
 	defer r.Unlock()
-	if r.controls[clientId] == nil {
-		return fmt.Errorf("No control found for client id: %s", clientId)
-	} else {
-		r.Info("Removed control registry id %s", clientId)
-		delete(r.controls, clientId)
-		return nil
+	if r.controls[clientID] == nil {
+		return fmt.Errorf("No control found for client id: %s", clientID)
 	}
+
+	r.Info("Removed control registry id %s", clientID)
+	delete(r.controls, clientID)
+	return nil
+
 }

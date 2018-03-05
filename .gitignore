@@ -1,2 +1,6 @@
 *.swp
 bin/
+main/client/debug
+main/client/mgrok
+main/server/debug
+main/server/mgrokd

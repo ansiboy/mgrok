@@ -13,31 +13,32 @@ Options:
 
 const usage2 string = `
 Examples:
-	ngrok 80
-	ngrok -subdomain=example 8080
-	ngrok -proto=tcp 22
-	ngrok -hostname="example.com" -httpauth="user:password" 10.0.0.1
+	mgrok 80
+	mgrok -subdomain=example 8080
+	mgrok -proto=tcp 22
+	mgrok -hostname="example.com" -httpauth="user:password" 10.0.0.1
 
 
-Advanced usage: ngrok [OPTIONS] <command> [command args] [...]
+Advanced usage: mgrok [OPTIONS] <command> [command args] [...]
 Commands:
-	ngrok start [tunnel] [...]    Start tunnels by name from config file
-	ngork start-all               Start all tunnels defined in config file
-	ngrok list                    List tunnel names from config file
-	ngrok help                    Print help
-	ngrok version                 Print ngrok version
+	mgrok start [tunnel] [...]    Start tunnels by name from config file
+	mgrok start-all               Start all tunnels defined in config file
+	mgrok list                    List tunnel names from config file
+	mgrok help                    Print help
+	mgrok version                 Print mgrok version
 
 Examples:
-	ngrok start www api blog pubsub
-	ngrok -log=stdout -config=ngrok.yml start ssh
-	ngrok start-all
-	ngrok version
+	mgrok start www api blog pubsub
+	mgrok -log=stdout -config=mgrok.yaml start ssh
+	mgrok start-all
+	mgrok version
 
 `
 
+// Options options
 type Options struct {
 	config    string
-	logto     string
+	log       string
 	loglevel  string
 	authtoken string
 	httpauth  string
@@ -48,6 +49,7 @@ type Options struct {
 	args      []string
 }
 
+// ParseArgs parse args
 func ParseArgs() (opts *Options, err error) {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, usage1, os.Args[0])
@@ -58,7 +60,7 @@ func ParseArgs() (opts *Options, err error) {
 	config := flag.String(
 		"config",
 		"",
-		"Path to ngrok configuration file. (default: $HOME/.ngrok)")
+		"Path to mgrok configuration file. (default: mgrok.yaml)")
 
 	logto := flag.String(
 		"log",
@@ -73,7 +75,7 @@ func ParseArgs() (opts *Options, err error) {
 	authtoken := flag.String(
 		"authtoken",
 		"",
-		"Authentication token for identifying an ngrok.com account")
+		"Authentication token for identifying an mgrok.cn account")
 
 	httpauth := flag.String(
 		"httpauth",
@@ -83,12 +85,12 @@ func ParseArgs() (opts *Options, err error) {
 	subdomain := flag.String(
 		"subdomain",
 		"",
-		"Request a custom subdomain from the ngrok server. (HTTP only)")
+		"Request a custom subdomain from the mgrok server. (HTTP only)")
 
 	hostname := flag.String(
 		"hostname",
 		"",
-		"Request a custom hostname from the ngrok server. (HTTP only) (requires CNAME of your DNS)")
+		"Request a custom hostname from the mgrok server. (HTTP only) (requires CNAME of your DNS)")
 
 	protocol := flag.String(
 		"proto",
@@ -99,7 +101,7 @@ func ParseArgs() (opts *Options, err error) {
 
 	opts = &Options{
 		config:    *config,
-		logto:     *logto,
+		log:       *logto,
 		loglevel:  *loglevel,
 		httpauth:  *httpauth,
 		subdomain: *subdomain,
@@ -124,8 +126,8 @@ func ParseArgs() (opts *Options, err error) {
 		os.Exit(0)
 	case "":
 		err = fmt.Errorf("Error: Specify a local port to tunnel to, or " +
-			"an ngrok command.\n\nExample: To expose port 80, run " +
-			"'ngrok 80'")
+			"an mgrok command.\n\nExample: To expose port 80, run " +
+			"'mgrok 80'")
 		return
 
 	default:

@@ -13,20 +13,20 @@ import (
 )
 
 const (
-	NotAuthorized = `HTTP/1.0 401 Not Authorized
-WWW-Authenticate: Basic realm="ngrok"
+	notAuthorized = `HTTP/1.0 401 Not Authorized
+WWW-Authenticate: Basic realm="mgrok"
 Content-Length: 23
 
 Authorization required
 `
 
-	NotFound = `HTTP/1.0 404 Not Found
+	notFound = `HTTP/1.0 404 Not Found
 Content-Length: %d
 
 Tunnel %s not found
 `
 
-	BadRequest = `HTTP/1.0 400 Bad Request
+	badRequest = `HTTP/1.0 400 Bad Request
 Content-Length: 12
 
 Bad Request
@@ -34,15 +34,14 @@ Bad Request
 )
 
 // Listens for new http(s) connections from the public internet
-func startHttpListener(addr string) (addr1 net.Addr) {
+func startHTTPListener(addr string) (addr1 net.Addr) {
 	var err error
 	// var addr1 net.Addr
 	if addr1, err = listen(addr, "pub"); err != nil {
 		panic(err)
 	}
 
-	proto := "http"
-	log.Info("Listening for public %s connections on %v", proto, addr1.String())
+	log.Info("Listening for public http connections on %v", addr1.String())
 
 	return
 }
@@ -94,7 +93,7 @@ func httpHandler(c net.Conn, proto string) {
 	vhostConn, err := vhost.HTTP(c)
 	if err != nil {
 		log.Warn("Failed to read valid %s request: %v", proto, err)
-		c.Write([]byte(BadRequest))
+		c.Write([]byte(badRequest))
 		return
 	}
 
@@ -114,19 +113,19 @@ func httpHandler(c net.Conn, proto string) {
 
 	// multiplex to find the right backend host
 	log.Debug("Found hostname %s in request", host)
-	tunnel := tunnelRegistry.Get(fmt.Sprintf("%s://%s", proto, host))
+	tunnel := tunnelRegistry.get(fmt.Sprintf("%s://%s", proto, host))
 	if tunnel == nil {
 		log.Info("No tunnel found for hostname %s", host)
-		c.Write([]byte(fmt.Sprintf(NotFound, len(host)+18, host)))
+		c.Write([]byte(fmt.Sprintf(notFound, len(host)+18, host)))
 		return
 	}
 
 	// If the client specified http auth and it doesn't match this request's auth
 	// then fail the request with 401 Not Authorized and request the client reissue the
 	// request with basic authdeny the request
-	if tunnel.req.HttpAuth != "" && auth != tunnel.req.HttpAuth {
+	if tunnel.req.HTTPAuth != "" && auth != tunnel.req.HTTPAuth {
 		log.Info("Authentication failed: %s", auth)
-		c.Write([]byte(NotAuthorized))
+		c.Write([]byte(notAuthorized))
 		return
 	}
 
@@ -134,5 +133,5 @@ func httpHandler(c net.Conn, proto string) {
 	c.SetDeadline(time.Time{})
 
 	// let the tunnel handle the connection now
-	tunnel.HandlePublicConnection(c)
+	tunnel.handlePublicConnection(c)
 }

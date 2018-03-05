@@ -16,22 +16,20 @@
                 "gopath": "${workspaceRoot}"
             },
             "showLog": true,            
-            /*
-            "program": "${workspaceRoot}/src/mgrok/main/ngrok/ngrok.go",
+            
+            "program": "${workspaceRoot}/main/client/mgrok.go",
             "args": [
                 "-log=stdout",
-                "start",
-                "maishu",
-                "ssh"
+                "-log-level=DEBUG",
+                "start-all",
             ]
-            */
-                        
-            "program": "${workspaceRoot}/main/server/mgrokd.go",
-            "args": [
-                "-domain=t.mgrok.cn",
-                "-httpAddr=:8081",
-                "-httpsAddr=:8082"
-            ]/**/
+            
+            // "program": "${workspaceRoot}/main/server/mgrokd.go",
+            // "args": [
+            //     "-domain=t.mgrok.cn",
+            //     "-httpAddr=:8081",
+            //     "-httpsAddr=:8082"
+            // ] 
         }
     ]
 }

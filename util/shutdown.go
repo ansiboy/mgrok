@@ -19,25 +19,29 @@ func NewShutdown() *Shutdown {
 	}
 }
 
+// Begin begin
 func (s *Shutdown) Begin() {
 	s.Lock()
 	defer s.Unlock()
 	if s.inProgress == true {
 		return
-	} else {
-		s.inProgress = true
-		close(s.begin)
 	}
+
+	s.inProgress = true
+	close(s.begin)
 }
 
+// WaitBegin wait begin
 func (s *Shutdown) WaitBegin() {
 	<-s.begin
 }
 
+// Complete complete
 func (s *Shutdown) Complete() {
 	close(s.complete)
 }
 
+// WaitComplete wait complete
 func (s *Shutdown) WaitComplete() {
 	<-s.complete
 }

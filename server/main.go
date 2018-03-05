@@ -27,7 +27,8 @@ var (
 	// listeners map[string]*conn.Listener
 )
 
-func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
+// NewProxy new proxy
+func newProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 	// fail gracefully if the proxy connection fails to register
 	defer func() {
 		if r := recover(); r != nil {
@@ -41,7 +42,7 @@ func NewProxy(pxyConn net.Conn, regPxy *msg.RegProxy) {
 
 	// look up the control connection for this proxy
 	log.Info("Registering new proxy for %s", regPxy.ClientId)
-	ctl := controlRegistry.Get(regPxy.ClientId)
+	ctl := controlRegistry.get(regPxy.ClientId)
 
 	if ctl == nil {
 		panic("No client found for identifier: " + regPxy.ClientId)
@@ -62,6 +63,8 @@ func tunnelListener(tunnelAddr string, httpAddr net.Addr) {
 		panic(err)
 	}
 
+	log.Info("Listening for control and proxy connections on %s", tunnelAddr)
+
 	for {
 		c, err := listener.Accept()
 		if err != nil {
@@ -74,7 +77,6 @@ func tunnelListener(tunnelAddr string, httpAddr net.Addr) {
 		log.Info("New connection from %v", c.RemoteAddr())
 	}
 
-	log.Info("Listening for control and proxy connections on %s", tunnelAddr)
 }
 
 func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
@@ -100,20 +102,18 @@ func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
 
 	switch m := rawMsg.(type) {
 	case *msg.Auth:
-		NewControl(tunnelConn, m, httpAddr)
+		newControl(tunnelConn, m, httpAddr)
 
 	case *msg.RegProxy:
-		NewProxy(tunnelConn, m)
+		newProxy(tunnelConn, m)
 
 	default:
 		tunnelConn.Close()
 	}
 }
 
+// Main server main
 func Main() {
-	// parse options
-	// opts = ParseArgs()
-
 	// read configuration file
 	config, err := LoadConfiguration("")
 	opts = config
@@ -122,7 +122,6 @@ func Main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	// fmt.Printf("%s", config)
 
 	// init logging
 	log.LogTo(opts.LogTo, opts.LogLevel)
@@ -136,13 +135,13 @@ func Main() {
 
 	// init tunnel/control registry
 	registryCacheFile := os.Getenv("REGISTRY_CACHE_FILE")
-	tunnelRegistry = NewTunnelRegistry(registryCacheSize, registryCacheFile)
-	controlRegistry = NewControlRegistry()
+	tunnelRegistry = newTunnelRegistry(registryCacheSize, registryCacheFile)
+	controlRegistry = newControlRegistry()
 
 	// listen for http
 	var httpAddr net.Addr
-	if opts.HttpAddr != "" {
-		httpAddr = startHttpListener(opts.HttpAddr)
+	if opts.HTTPAddr != "" {
+		httpAddr = startHTTPListener(opts.HTTPAddr)
 	}
 
 	// ngrok clients

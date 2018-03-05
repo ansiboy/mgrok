@@ -16,8 +16,9 @@ import (
 	"gopkg.in/yaml.v1"
 )
 
+// Configuration server config
 type Configuration struct {
-	HttpProxy          string                          `yaml:"http_proxy,omitempty"`
+	HTTPProxy          string                          `yaml:"http_proxy,omitempty"`
 	ServerAddr         string                          `yaml:"server_addr,omitempty"`
 	InspectAddr        string                          `yaml:"inspect_addr,omitempty"`
 	TrustHostRootCerts bool                            `yaml:"trust_host_root_certs,omitempty"`
@@ -27,14 +28,16 @@ type Configuration struct {
 	Path               string                          `yaml:"-"`
 }
 
+// TunnelConfiguration tunnel configuration
 type TunnelConfiguration struct {
 	Subdomain  string            `yaml:"subdomain,omitempty"`
 	Hostname   string            `yaml:"hostname,omitempty"`
 	Protocols  map[string]string `yaml:"proto,omitempty"`
-	HttpAuth   string            `yaml:"auth,omitempty"`
+	HTTPAuth   string            `yaml:"auth,omitempty"`
 	RemotePort uint16            `yaml:"remote_port,omitempty"`
 }
 
+// LoadConfiguration load config
 func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 	configPath := opts.config
 	if configPath == "" {
@@ -77,8 +80,8 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 		config.InspectAddr = defaultInspectAddr
 	}
 
-	if config.HttpProxy == "" {
-		config.HttpProxy = os.Getenv("http_proxy")
+	if config.HTTPProxy == "" {
+		config.HTTPProxy = os.Getenv("http_proxy")
 	}
 
 	// validate and normalize configuration
@@ -92,21 +95,21 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 		return
 	}
 
-	if config.HttpProxy != "" {
-		var proxyUrl *url.URL
-		if proxyUrl, err = url.Parse(config.HttpProxy); err != nil {
+	if config.HTTPProxy != "" {
+		var proxyURL *url.URL
+		if proxyURL, err = url.Parse(config.HTTPProxy); err != nil {
 			return
-		} else {
-			if proxyUrl.Scheme != "http" && proxyUrl.Scheme != "https" {
-				err = fmt.Errorf("Proxy url scheme must be 'http' or 'https', got %v", proxyUrl.Scheme)
-				return
-			}
+		}
+
+		if proxyURL.Scheme != "http" && proxyURL.Scheme != "https" {
+			err = fmt.Errorf("Proxy url scheme must be 'http' or 'https', got %v", proxyURL.Scheme)
+			return
 		}
 	}
 
 	for name, t := range config.Tunnels {
 		if t == nil || t.Protocols == nil || len(t.Protocols) == 0 {
-			err = fmt.Errorf("Tunnel %s does not specify any protocols to tunnel.", name)
+			err = fmt.Errorf("Tunnel %s does not specify any protocols to tunnel.\r", name)
 			return
 		}
 
@@ -134,7 +137,7 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 	}
 
 	// override configuration with command-line options
-	config.LogTo = opts.logto
+	config.LogTo = opts.log
 	config.Path = configPath
 	if opts.authtoken != "" {
 		config.AuthToken = opts.authtoken
@@ -147,7 +150,7 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 		config.Tunnels["default"] = &TunnelConfiguration{
 			Subdomain: opts.subdomain,
 			Hostname:  opts.hostname,
-			HttpAuth:  opts.httpauth,
+			HTTPAuth:  opts.httpauth,
 			Protocols: make(map[string]string),
 		}
 
@@ -163,7 +166,7 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 
 	// list tunnels
 	case "list":
-		for name, _ := range config.Tunnels {
+		for name := range config.Tunnels {
 			fmt.Println(name)
 		}
 		os.Exit(0)
@@ -180,12 +183,12 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 			requestedTunnels[arg] = true
 
 			if _, ok := config.Tunnels[arg]; !ok {
-				err = fmt.Errorf("Requested to start tunnel %s which is not defined in the config file.", arg)
+				err = fmt.Errorf("Requested to start tunnel %s which is not defined in the config file.\r", arg)
 				return
 			}
 		}
 
-		for name, _ := range config.Tunnels {
+		for name := range config.Tunnels {
 			if !requestedTunnels[name] {
 				delete(config.Tunnels, name)
 			}
@@ -206,7 +209,7 @@ func defaultPath() string {
 	filename, _ := osext.Executable()
 	dir := path.Dir(filename)
 
-	return path.Join(dir, "ngrok.yaml")
+	return path.Join(dir, "mgrok.yaml")
 }
 
 func normalizeAddress(addr string, propName string) (string, error) {
@@ -237,6 +240,7 @@ func validateProtocol(proto, propName string) (err error) {
 	return
 }
 
+// SaveAuthToken save auth token
 func SaveAuthToken(configPath, authtoken string) (err error) {
 	// empty configuration by default for the case that we can't read it
 	c := new(Configuration)

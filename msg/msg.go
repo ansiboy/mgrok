@@ -69,7 +69,7 @@ type ReqTunnel struct {
 	// http only
 	Hostname  string
 	Subdomain string
-	HttpAuth  string
+	HTTPAuth  string
 
 	// tcp only
 	RemotePort uint16

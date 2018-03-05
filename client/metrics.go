@@ -9,7 +9,8 @@ const (
 	sampleAlpha float64 = 0.015
 )
 
-type ClientMetrics struct {
+// Metrics client metrics
+type Metrics struct {
 	// metrics
 	connGauge       metrics.Gauge
 	connMeter       metrics.Meter
@@ -21,8 +22,9 @@ type ClientMetrics struct {
 	bytesOutCount   metrics.Counter
 }
 
-func NewClientMetrics() *ClientMetrics {
-	return &ClientMetrics{
+// NewClientMetrics create ClientMetrics object
+func NewClientMetrics() *Metrics {
+	return &Metrics{
 		connGauge:       metrics.NewGauge(),
 		connMeter:       metrics.NewMeter(),
 		connTimer:       metrics.NewTimer(),

@@ -9,7 +9,7 @@ const crashMessage = `panic: %v
 
 %s
 
-Oh noes! ngrok crashed!
+Oh noes! mgrok crashed!
 
 Please submit the stack trace and any relevant information to:
 github.com/ansiboy/mgrok/issues`
