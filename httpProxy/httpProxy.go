@@ -1,6 +1,7 @@
 package httpProxy
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -8,6 +9,11 @@ import (
 )
 
 func Main() {
+
+	config, err := loadConfiguration("")
+	checkError(err)
+
+	go startData(config)
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		client := new(http.Client)
@@ -31,6 +37,28 @@ func Main() {
 	})
 
 	http.ListenAndServe(":3762", nil)
+
+}
+
+func startData(config *Configuration) {
+	listener, err := net.Listen("tcp", config.dataAddr)
+	checkError(err)
+	defer listener.Close()
+
+	for {
+		conn, err := listener.Accept()
+		checkError(err)
+
+		for {
+			data, err := ioutil.ReadAll(conn)
+			if err != nil || len(data) == 0 {
+				continue
+			}
+
+			fmt.Println(string(data))
+		}
+
+	}
 }
 
 func checkError(err error) {
