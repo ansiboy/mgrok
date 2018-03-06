@@ -1,5 +1,5 @@
 http_addr: :8081
-# https_addr: :8082
+data_addr: :6313
 domain: t.mgrok.cn
 log_to: stdout
 log_level: debug

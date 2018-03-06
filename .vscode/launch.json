@@ -17,12 +17,12 @@
             },
             "showLog": true,            
             
-            "program": "${workspaceRoot}/main/client/mgrok.go",
-            "args": [
-                "-log=stdout",
-                "-log-level=DEBUG",
-                "start-all",
-            ]
+            // "program": "${workspaceRoot}/main/client/mgrok.go",
+            // "args": [
+            //     "-log=stdout",
+            //     "-log-level=DEBUG",
+            //     "start-all",
+            // ]
             
             // "program": "${workspaceRoot}/main/server/mgrokd.go",
             // "args": [
@@ -30,6 +30,8 @@
             //     "-httpAddr=:8081",
             //     "-httpsAddr=:8082"
             // ] 
+
+            "program": "${workspaceRoot}/main/httpProxy/httpProxy.go"
         }
     ]
 }
