@@ -17,8 +17,10 @@ const (
 
 // Configuration http proxy configuration
 type Configuration struct {
-	httpAddr string `yaml:"http_addr,omitempty"`
-	dataAddr string `yaml:"data_addr,omitempty"`
+	HTTPAddr string `yaml:"http_addr,omitempty"`
+	DataAddr string `yaml:"data_addr,omitempty"`
+	LogTo    string `yaml:"log_to,omitempty"`
+	LogLevel string `yaml:"log_level,omitempty"`
 }
 
 func loadConfiguration(configPath string) (config *Configuration, err error) {
@@ -34,17 +36,17 @@ func loadConfiguration(configPath string) (config *Configuration, err error) {
 	}
 
 	config = new(Configuration)
-	if err = yaml.Unmarshal(configBuf, &config); err != nil {
+	if err = yaml.Unmarshal(configBuf, config); err != nil {
 		err = fmt.Errorf("Error parsing configuration file %s: %v", configPath, err)
 		return
 	}
 
-	if config.dataAddr == "" {
-		config.dataAddr = defaultDataAddr
+	if config.DataAddr == "" {
+		config.DataAddr = defaultDataAddr
 	}
 
-	if config.httpAddr == "" {
-		config.httpAddr = defaultHTTPAddr
+	if config.HTTPAddr == "" {
+		config.HTTPAddr = defaultHTTPAddr
 	}
 
 	return

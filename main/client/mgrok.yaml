@@ -1,6 +1,5 @@
 server_addr: t.mgrok.cn:4443
 trust_host_root_certs: false
-inspect_addr: disabled
 tunnels:
     ssh:                      #alinq.cn
         remote_port: 40022

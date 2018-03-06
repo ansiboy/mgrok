@@ -12,6 +12,7 @@ import (
 
 // Configuration server config
 type Configuration struct {
+	DataAddr        string `yaml:"data_addr,omitempty"`
 	HTTPAddr        string `yaml:"http_addr,omitempty"`
 	TunnelAddr      string `yaml:"tunnel_addr,omitempty"`
 	Domain          string `yaml:"domain,omitempty"`
