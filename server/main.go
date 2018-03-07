@@ -23,7 +23,7 @@ var (
 	controlRegistry *ControlRegistry
 
 	// XXX: kill these global variables - they're only used in tunnel.go for constructing forwarding URLs
-	opts *Configuration
+	config *Configuration
 	// listeners map[string]*conn.Listener
 )
 
@@ -114,17 +114,19 @@ func tunnelHandler(tunnelConn net.Conn, httpAddr net.Addr) {
 
 // Main server main
 func Main() {
-	// read configuration file
-	config, err := LoadConfiguration("")
-	opts = config
 
+	opts := parseArgs()
+
+	var err error
+	// read configuration file
+	config, err = LoadConfiguration(opts.config)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// init logging
-	log.LogTo(opts.LogTo, opts.LogLevel)
+	log.LogTo(config.LogTo, config.LogLevel)
 
 	// seed random number generator
 	seed, err := util.RandomSeed()
@@ -140,11 +142,11 @@ func Main() {
 
 	// listen for http
 	var httpAddr net.Addr
-	if opts.HTTPAddr != "" {
-		httpAddr = startHTTPListener(opts.HTTPAddr)
+	if config.HTTPAddr != "" {
+		httpAddr = startHTTPListener(config.HTTPAddr)
 	}
 
 	// ngrok clients
-	tunnelListener(opts.TunnelAddr, httpAddr)
+	tunnelListener(config.TunnelAddr, httpAddr)
 	fmt.Scanln()
 }
