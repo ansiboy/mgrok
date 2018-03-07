@@ -11,7 +11,7 @@ type Options struct {
 func parseArgs() (opts *Options) {
 	config := flag.String(
 		"config",
-		"mgrokd.yaml",
+		"httpProxy.yaml",
 		"Path to mgrok configuration file. (default: mgrok.yaml)",
 	)
 
