@@ -12,9 +12,6 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "env": {
-                "gopath": "${workspaceRoot}"
-            },
             "showLog": true,            
             
             // "program": "${workspaceRoot}/main/client/mgrok.go",
