@@ -1,57 +1,62 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"mgrok/httpProxy"
 	"mgrok/log"
-	"net"
+	"net/http"
 )
 
 // TunnelCenterRegistry 遂道注册中心，负责将遂道信息添加到中心的代理服务器
 type TunnelCenterRegistry struct {
-	conn       net.Conn
+	// conn       net.Conn
+	url        string
 	targetAddr string
 }
 
+var logger = log.NewPrefixLogger("RedirectData")
+
+//var url = "http://" + dataAddr + "/control"
+
 func newRedirectData(dataAddr string, targetAddr string) (registry *TunnelCenterRegistry, err error) {
-	var conn net.Conn
-	conn, err = net.Dial("tcp", dataAddr)
-	if err != nil {
-		return
-	}
+	// var conn net.Conn
+	// conn, err = http.Client.Post(url) //http.Dial(url, "", "http://"+dataAddr+"/ws")
+	// if err != nil {
+	// 	return
+	// }
 
 	registry = &TunnelCenterRegistry{
-		conn:       conn,
+		url:        "http://" + dataAddr + "/control",
 		targetAddr: targetAddr,
 	}
 
-	go func() {
+	// go func() {
 
-		defer conn.Close()
+	// 	// defer conn.Close()
 
-		for {
-			data, err := ioutil.ReadAll(conn)
-			if err != nil {
-				//TODO 处理异常
-				continue
-			}
+	// 	for {
+	// 		// data, err := ioutil.ReadAll(conn)
+	// 		if err != nil {
+	// 			//TODO 处理异常
+	// 			continue
+	// 		}
 
-			var f httpProxy.ActionData
-			err = json.Unmarshal(data, f)
-			if err != nil {
-				//TODO 处理异常
-				continue
-			}
+	// 		var f httpProxy.ActionData
+	// 		err = json.Unmarshal(data, f)
+	// 		if err != nil {
+	// 			//TODO 处理异常
+	// 			continue
+	// 		}
 
-			switch f.Action {
+	// 		switch f.Action {
 
-			}
+	// 		}
 
-			fmt.Println(data)
-		}
-	}()
+	// 		fmt.Println(data)
+	// 	}
+	// }()
 
 	return
 }
@@ -64,19 +69,24 @@ func (r *TunnelCenterRegistry) register(url string, t *Tunnel) {
 	}
 
 	actionData := httpProxy.ActionData{
-		Action: httpProxy.ACTION_REGISTER,
+		Action: httpProxy.ActionRegister,
 		Data: httpProxy.HTTPRedirect{
 			SourceAddr: addr,
 			TargetAddr: r.targetAddr,
 		},
 	}
-	data, err := json.Marshal(actionData)
-	if err != nil {
-		log.Error(err.Error(), err)
-		return
-	}
 
-	r.conn.Write(data)
+	r.write(actionData)
+	// data, err := json.Marshal(actionData)
+	// if err != nil {
+	// 	logger.Error(err.Error(), err)
+	// 	return
+	// }
+
+	// _, err = r.conn.Write(data)
+	// if err != nil {
+	// 	logger.Error(err.Error())
+	// }
 }
 
 func (r *TunnelCenterRegistry) del(url string) {
@@ -85,20 +95,28 @@ func (r *TunnelCenterRegistry) del(url string) {
 		return
 	}
 	actionData := httpProxy.ActionData{
-		Action: httpProxy.ACTION_DELETE,
+		Action: httpProxy.ActionDelete,
 		Data: httpProxy.HTTPRedirect{
 			SourceAddr: addr,
 			TargetAddr: r.targetAddr,
 		},
 	}
 
+	r.write(actionData)
+}
+
+func (r *TunnelCenterRegistry) write(actionData httpProxy.ActionData) {
 	data, err := json.Marshal(actionData)
+	fmt.Println(string(data))
 	if err != nil {
-		log.Error(err.Error(), err)
+		logger.Error(err.Error(), err)
 		return
 	}
 
-	r.conn.Write(data)
+	_, err = http.Post(r.url, "text/application-json", bytes.NewBuffer(data))
+	if err != nil {
+		logger.Error(err.Error())
+	}
 }
 
 func cutHTTPPrefix(url string) string {
