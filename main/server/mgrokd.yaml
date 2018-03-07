@@ -1,5 +1,6 @@
 http_addr: :8081
-# https_addr: :8082
+data_addr: :6313
+http_pulbish_port: 5626 # HTTP 对外访问的端口
 domain: t.mgrok.cn
 log_to: stdout
 log_level: debug

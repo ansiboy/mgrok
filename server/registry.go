@@ -26,13 +26,15 @@ type TunnelRegistry struct {
 	affinity *cache.LRUCache
 	log.Logger
 	sync.RWMutex
+	centerRegistry *TunnelCenterRegistry
 }
 
-func newTunnelRegistry(cacheSize uint64, cacheFile string) *TunnelRegistry {
+func newTunnelRegistry(cacheSize uint64, cacheFile string, redirectData *TunnelCenterRegistry) *TunnelRegistry {
 	registry := &TunnelRegistry{
-		tunnels:  make(map[string]*Tunnel),
-		affinity: cache.NewLRUCache(cacheSize),
-		Logger:   log.NewPrefixLogger("registry", "tun"),
+		tunnels:        make(map[string]*Tunnel),
+		affinity:       cache.NewLRUCache(cacheSize),
+		Logger:         log.NewPrefixLogger("registry", "tun"),
+		centerRegistry: redirectData,
 	}
 
 	// LRUCache uses Gob encoding. Unfortunately, Gob is fickle and will fail
@@ -86,7 +88,9 @@ func (r *TunnelRegistry) register(url string, t *Tunnel) error {
 	}
 
 	r.tunnels[url] = t
-
+	if r.centerRegistry != nil {
+		r.centerRegistry.register(url, t)
+	}
 	return nil
 }
 
@@ -153,6 +157,7 @@ func (r *TunnelRegistry) del(url string) {
 	defer r.Unlock()
 	r.Debug("Delete tunnel named %s.", url)
 	delete(r.tunnels, url)
+	r.centerRegistry.del(url)
 }
 
 func (r *TunnelRegistry) get(url string) *Tunnel {

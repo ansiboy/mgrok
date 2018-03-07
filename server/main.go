@@ -135,9 +135,17 @@ func Main() {
 	}
 	rand.Seed(seed)
 
+	var redirectData *TunnelCenterRegistry
+	if config.DataAddr != "" {
+		redirectData, err = newRedirectData(config.DataAddr, config.HTTPAddr)
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+
 	// init tunnel/control registry
 	registryCacheFile := os.Getenv("REGISTRY_CACHE_FILE")
-	tunnelRegistry = newTunnelRegistry(registryCacheSize, registryCacheFile)
+	tunnelRegistry = newTunnelRegistry(registryCacheSize, registryCacheFile, redirectData)
 	controlRegistry = newControlRegistry()
 
 	// listen for http

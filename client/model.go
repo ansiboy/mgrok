@@ -14,7 +14,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ansiboy/mgrok/src/ngrok/client/mvc"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
@@ -36,11 +35,11 @@ const (
 type Model struct {
 	log.Logger
 	id            string
-	tunnels       map[string]mvc.Tunnel
+	tunnels       map[string]Tunnel
 	serverVersion string
 	metrics       *Metrics
-	updateStatus  mvc.UpdateStatus
-	connStatus    mvc.ConnStatus
+	updateStatus  UpdateStatus
+	connStatus    ConnStatus
 	serverAddr    string
 	proxyURL      string
 	authToken     string
