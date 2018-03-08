@@ -12,16 +12,14 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "env": {
-                "gopath": "../../../${workspaceRoot}"
-            },
             "showLog": true,            
             
-            "program": "${workspaceRoot}/ngrok.go",
+            "program": "${workspaceRoot}/mgrok.go",
             "args": [
                 "-log=stdout",
                 "start",
-                "maishu"
+                "maishu",
+                "ssh"
             ]
             /**/
             /*

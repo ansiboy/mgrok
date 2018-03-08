@@ -1,27 +1,20 @@
-package ngrokd_test
+package mgrok_test
 
 import (
+	"encoding/json"
 	"fmt"
-	// "mgrok/server"
-	server "mgrok/server"
+	"mgrok/httpProxy"
 	"testing"
 )
 
-func Test_LoadConfigration(t *testing.T) {
-	fmt.Println("Begin test")
-	configPath := "/Volumes/data/projects/mgrok/src/mgrok/main/mgrok/ngrok.yaml"
-	config, err := server.LoadConfiguration(configPath)
-	if err != nil {
-		fmt.Print(err)
-		t.Error(err)
-		return
+func Test_Server_Temp(t *testing.T) {
+	actionData := httpProxy.ActionData{
+		Action: httpProxy.ActionDelete,
+		Data: httpProxy.HTTPRedirect{
+			SourceAddr: "mgrok.cn mgrok.cn",
+			TargetAddr: "mgrok.cn mgrok.cn mgrok.cn mgrok.cn",
+		},
 	}
-	if config == nil {
-		t.Error("config is nil")
-		return
-	}
-	fmt.Printf("http_addr %s\r\n", config.HttpAddr)
-	fmt.Printf("https_addr %s\r\n", config.HttpsAddr)
-	fmt.Printf("domain %s\r\n", config.Domain)
-	fmt.Println("End test")
+	data, _ := json.Marshal(actionData)
+	fmt.Println(string(data))
 }
