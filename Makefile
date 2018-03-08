@@ -11,11 +11,16 @@ pkgs:
 	go get -u github.com/kardianos/osext
 	go get -u github.com/inconshreveable/go-vhost
 
-# build: pkgs
+build: pkgs
 build:
 	go build -o .bin/$(DIR)mgrok main/client/mgrok.go
 	go build -o .bin/$(DIR)mgrokd main/server/mgrokd.go
 	go build -o .bin/$(DIR)httpProxy main/httpProxy/httpProxy.go
+
+build_exe:
+	go build -o .bin/$(DIR)mgrok.exe main/client/mgrok.go
+	go build -o .bin/$(DIR)mgrokd.exe main/server/mgrokd.go
+	go build -o .bin/$(DIR)httpProxy.exe main/httpProxy/httpProxy.go
 
 linux64: export GOOS=linux
 linux64: export GOARCH=amd64
@@ -35,12 +40,12 @@ arm: build
 win64: export GOOS=windows
 win64: export GOARCH=amd64
 win64: DIR=windows_amd64/
-win64: build
+win64: build_exe
 
 win32: export GOOS=windows
 win32: export GOARCH=386
 win32: DIR=windows_386/
-win32: build
+win32: build_exe
 
 darwin64: export GOOS=darwin
 darwin64: export GOARCH=amd64
