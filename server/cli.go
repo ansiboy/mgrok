@@ -2,10 +2,14 @@ package server
 
 import (
 	"flag"
+	"fmt"
+	"mgrok/version"
+	"os"
 )
 
 type Options struct {
-	config string
+	config  string
+	command string
 }
 
 func parseArgs() (opts *Options) {
@@ -16,7 +20,17 @@ func parseArgs() (opts *Options) {
 	)
 
 	opts = &Options{
-		config: *config,
+		config:  *config,
+		command: flag.Arg(0),
+	}
+
+	switch opts.command {
+	case "version":
+		fmt.Println(version.MajorMinor())
+		os.Exit(0)
+	case "help":
+		flag.Usage()
+		os.Exit(0)
 	}
 
 	return opts
