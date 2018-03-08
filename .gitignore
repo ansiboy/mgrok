@@ -4,8 +4,8 @@ main/client/debug
 main/client/mgrok
 main/server/debug
 main/server/mgrokd
-main/httpProxy/debug
-main/httpProxy/httpProxy
+main/proxy/debug
+main/proxy/mgrokp
 .DS_Store
 ._.DS_Store
 *.exe

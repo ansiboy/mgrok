@@ -32,7 +32,7 @@ func Main() {
 	checkError(err)
 	if config.LogTo != "" {
 		log.LogTo(config.LogTo, config.LogLevel)
-		logger = log.NewPrefixLogger("httpProxy")
+		logger = log.NewPrefixLogger("mgrokp")
 	}
 
 	go start(config)

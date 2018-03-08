@@ -57,5 +57,5 @@ func defaultPath() string {
 	filename, _ := osext.Executable()
 	dir := path.Dir(filename)
 
-	return path.Join(dir, "httpProxy.yaml")
+	return path.Join(dir, "mgrokp.yaml")
 }
