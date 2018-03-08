@@ -30,11 +30,8 @@ func Main() {
 	opts := parseArgs()
 	config, err := loadConfiguration(opts.config)
 	checkError(err)
-	if config.LogTo != "" {
-		log.LogTo(config.LogTo, config.LogLevel)
-		logger = log.NewPrefixLogger("mgrokp")
-	}
-
+	log.LogTo(config.LogTo, config.LogLevel)
+	logger = log.NewPrefixLogger("mgrokp")
 	go start(config)
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {

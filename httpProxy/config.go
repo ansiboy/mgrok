@@ -13,6 +13,8 @@ import (
 const (
 	defaultHTTPAddr = "127.0.0.1:3762"
 	defaultDataAddr = "127.0.0.1:6523"
+	defaultLogTo    = "stdout"
+	defaultLogLevel = "DEBUG"
 )
 
 // Configuration http proxy configuration
@@ -47,6 +49,14 @@ func loadConfiguration(configPath string) (config *Configuration, err error) {
 
 	if config.HTTPAddr == "" {
 		config.HTTPAddr = defaultHTTPAddr
+	}
+
+	if config.LogTo == "" {
+		config.LogTo = defaultLogTo
+	}
+
+	if config.LogLevel == "" {
+		config.LogLevel = defaultLogLevel
 	}
 
 	return
