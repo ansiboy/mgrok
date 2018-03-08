@@ -24,7 +24,7 @@ build_exe:
 
 linux64: export GOOS=linux
 linux64: export GOARCH=amd64
-linux64: PLATFORM=linux_amd64
+linux64: DIR=linux_amd64/
 linux64: build
 
 linux32: export GOOS=linux
