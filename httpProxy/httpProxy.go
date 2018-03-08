@@ -27,8 +27,8 @@ var ActionDelete = "DELETE"
 var tunnleInfos = make(map[string]HTTPRedirect)
 var logger log.Logger // =
 func Main() {
-
-	config, err := loadConfiguration("")
+	opts := parseArgs()
+	config, err := loadConfiguration(opts.config)
 	checkError(err)
 	if config.LogTo != "" {
 		log.LogTo(config.LogTo, config.LogLevel)
