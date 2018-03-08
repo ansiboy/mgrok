@@ -18,13 +18,13 @@ import (
 
 // Configuration server config
 type Configuration struct {
-	HTTPProxy          string                          `yaml:"http_proxy,omitempty"`
-	ServerAddr         string                          `yaml:"server_addr,omitempty"`
-	TrustHostRootCerts bool                            `yaml:"trust_host_root_certs,omitempty"`
-	AuthToken          string                          `yaml:"auth_token,omitempty"`
-	Tunnels            map[string]*TunnelConfiguration `yaml:"tunnels,omitempty"`
-	LogTo              string                          `yaml:"-"`
-	Path               string                          `yaml:"-"`
+	HTTPProxy  string `yaml:"http_proxy,omitempty"`
+	ServerAddr string `yaml:"server_addr,omitempty"`
+	// TrustHostRootCerts bool                            `yaml:"trust_host_root_certs,omitempty"`
+	AuthToken string                          `yaml:"auth_token,omitempty"`
+	Tunnels   map[string]*TunnelConfiguration `yaml:"tunnels,omitempty"`
+	LogTo     string                          `yaml:"-"`
+	Path      string                          `yaml:"-"`
 }
 
 // TunnelConfiguration tunnel configuration
