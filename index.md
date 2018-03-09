@@ -1,30 +1,34 @@
-# MGROK —— 做更好的 Ngrok
+# MGROK —— 做更好的 NGROK
 
---------------------------
+基于 NGROK 1.7 修改，开源托管在 GITHUB，[点击这里获取源码](https://github.com/ansiboy/mgrok)
 
-#### Mgrok 客户端使用
+## MGROK 客户端使用
 
 * 下载 mgrok 客户端，请根据使用的操作系统，下载对应的版本
 
 * 解压缩，并进入到解压后的目录，运行 mgrok
 
-例如
+### 例如
 
-**建立HTTP隧道**
+* **建立HTTP隧道**
 
-```
-mgrok -subdomain pub -proto=http 80
-```
+    ```cmd
+    mgrok -subdomain pub -proto=http 80
+    ```
 
-**建立数据库隧道**
+* **建立数据库隧道**
 
-```
-mgrok -proto=tcp 3306
-```
+    ```cmd
+    mgrok -proto=tcp 3306
+    ```
 
------------------------------------
+* **更详细使用**
 
-#### 下载
+  请参考 NGROK   <https://imlonghao.com/28.html>
+
+--------------------------
+
+## 下载
 
 * [windows x64](download/windows_amd64.zip)
 
@@ -40,21 +44,14 @@ mgrok -proto=tcp 3306
 
 * [linux arm](download/linux_arm.zip)
 
-------------------------
+--------------------------
 
-### 讨论组
+## 讨论组
 
-<br/>
-
-QQ 群：
-
-* 371677466 
-
-<br/>
+QQ 群：371677466
 
 加群的时候，把来意说明一下
 
------------------------------
+--------------------------
 
-#### [粤ICP备15018904号-4](http://www.miitbeian.gov.cn/)
-
+## [粤ICP备15018904号-4](http://www.miitbeian.gov.cn/)
