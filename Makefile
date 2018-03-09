@@ -15,17 +15,17 @@ build: pkgs
 build:
 	go build -o .bin/$(DIR)mgrok main/client/mgrok.go
 	go build -o .bin/$(DIR)mgrokd main/server/mgrokd.go
-	go build -o .bin/$(DIR)httpProxy main/httpProxy/httpProxy.go
+	go build -o .bin/$(DIR)mgrokp main/proxy/mgrokp.go
 
 build_exe:
 	go build -o .bin/$(DIR)mgrok.exe main/client/mgrok.go
 	go build -o .bin/$(DIR)mgrokd.exe main/server/mgrokd.go
-	go build -o .bin/$(DIR)httpProxy.exe main/httpProxy/httpProxy.go
+	go build -o .bin/$(DIR)mgrokp.exe main/mgrokp/mgrokp.go
 
 copy:
 	cp main/client/mgrok.yaml .bin/$(DIR)mgrok.yaml	
 	cp main/server/mgrokd.yaml .bin/$(DIR)mgrokd.yaml
-	cp main/httpProxy/httpProxy.yaml .bin/$(DIR)httpProxy.yaml	
+	cp main/proxy/mgrokp.yaml .bin/$(DIR)mgrokp.yaml	
 
 linux64: export GOOS=linux
 linux64: export GOARCH=amd64

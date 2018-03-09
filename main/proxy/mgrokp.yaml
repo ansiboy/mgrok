@@ -1,4 +1,4 @@
-# http_addr: 127.0.0.1:5626               # HTTP 服务端口，默认为 127.0.0.1:5626
-# data_addr: 127.0.0.1:6313               # 与 Mgrok 服务端 (Mgrokd) 通讯的地址，默认为 127.0.0.1:6313
+# http_addr: 127.0.0.1:3762               # HTTP 服务端口，默认为 127.0.0.1:3762
+# data_addr: 127.0.0.1:6523               # 与 Mgrok 服务端 (Mgrokd) 通讯的地址，默认为 127.0.0.1:6523
 # log_to: stdout                 # 日志输出，stdout 或 none。默认为 stdout
 # log_level: debug               # 日志输出级别，可以为：DEBUG, INFO, WARNING, ERROR，默认为 DEBUG 

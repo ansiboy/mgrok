@@ -15,8 +15,8 @@ type Options struct {
 func parseArgs() (opts *Options) {
 	config := flag.String(
 		"config",
-		"httpProxy.yaml",
-		"Path to httpProxy configuration file. (default: httpProxy.yaml)",
+		"mgrokp.yaml",
+		"Path to httpProxy configuration file. (default: mgrokp.yaml)",
 	)
 
 	flag.Parse()

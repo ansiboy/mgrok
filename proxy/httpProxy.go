@@ -2,6 +2,7 @@ package httpProxy
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"mgrok/log"
 	"net/http"
@@ -105,10 +106,10 @@ func start(config *Configuration) {
 		info := obj.Data
 		switch action {
 		case ActionDelete:
-			logger.Info("Delete tunnel registry")
+			logger.Info(fmt.Sprint("Delete tunnel registry ", info.SourceAddr))
 			delete(tunnleInfos, info.SourceAddr)
 		case ActionRegister:
-			logger.Info("Register tunnel")
+			logger.Info(fmt.Sprint("Register tunnel ", info.SourceAddr))
 			tunnleInfos[info.SourceAddr] = info
 		}
 	})
