@@ -4,3 +4,4 @@ main/client/debug
 main/client/mgrok
 main/server/debug
 main/server/mgrokd
+node_modules
