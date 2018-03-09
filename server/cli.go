@@ -19,6 +19,8 @@ func parseArgs() (opts *Options) {
 		"Path to mgrok configuration file. (default: mgrok.yaml)",
 	)
 
+	flag.Parse()
+
 	opts = &Options{
 		config:  *config,
 		command: flag.Arg(0),
