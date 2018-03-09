@@ -1,6 +1,6 @@
 package main
 
-import "mgrok/httpProxy"
+import "mgrok/proxy"
 
 func main() {
 	httpProxy.Main()

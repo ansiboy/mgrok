@@ -3,8 +3,8 @@ tunnels:
     ssh:                     
         remote_port: 40022
         proto:
-            tcp: service4.alinq.cn:22
-    maishu:
+            tcp: 192.168.1.24:22
+    pub:
         proto:
-            http: 127.0.0.1:8080
+            http: 192.168.1.19:8080
     

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"mgrok/httpProxy"
 	"mgrok/log"
+	"mgrok/proxy"
 	"net/http"
 )
 
