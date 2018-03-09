@@ -40,7 +40,11 @@ func Main() {
 
 		var err error
 
-		redirectInfo, ok := tunnleInfos[request.Host]
+		host := request.Header.Get("X-Host")
+		if len(host) == 0 {
+			host = request.Host
+		}
+		redirectInfo, ok := tunnleInfos[host]
 		if ok == false {
 			http.NotFound(writer, request)
 			return
