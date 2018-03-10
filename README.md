@@ -43,7 +43,7 @@ MGROK 集群架构
 
 ## 已编译文件下载
 
-[点击这里下载](http://mgrok.cn)
+[点击这里下载](http://www.mgrok.cn)
 
 ## 使用
 
