@@ -148,7 +148,7 @@ tunnels:
 
     * 然后配置 NGINX 的 HTTP 转发
 
-    其中的 X-Host 是必须
+    其中的 **X-Host** 是必须
 
     ```
     server {
