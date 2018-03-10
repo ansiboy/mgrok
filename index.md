@@ -1,6 +1,6 @@
 # MGROK —— 做更好的 NGROK
 
-基于 NGROK 1.7 修改，开源托管在 GITHUB，[点击这里获取源码](https://github.com/ansiboy/mgrok)
+基于 NGROK 1.7 修改，开源并托管在 GITHUB [点击这里获取源码](https://github.com/ansiboy/mgrok)
 
 ## MGROK 客户端使用
 
@@ -22,7 +22,7 @@
     mgrok -proto=tcp 3306
     ```
 
-* **更详细使用**
+* **更详细使用**
 
   请参考 NGROK   <https://imlonghao.com/28.html>
 
