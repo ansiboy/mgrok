@@ -4,7 +4,7 @@ export GOARCH=
 
 pkgs:
 	go get -u github.com/alecthomas/log4go
-	go get -u github.com/gizak/termui
+	go get -u github.com/rivo/tview
 	go get -u github.com/inconshreveable/mousetrap
 	go get -u github.com/rcrowley/go-metrics
 	go get -u gopkg.in/yaml.v1
@@ -41,7 +41,7 @@ linux32: copy
 
 arm: export GOOS=linux
 arm: export GOARCH=arm
-arm: DIR=arm/
+arm: DIR=linux_arm/
 arm: build
 arm: copy
 
