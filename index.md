@@ -24,7 +24,7 @@
 
 * **更详细使用**
 
-  请参考 NGROK   <https://imlonghao.com/28.html>
+  请参考 NGROK 使用 <https://imlonghao.com/28.html>
 
 --------------------------
 
