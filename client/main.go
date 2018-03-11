@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"mgrok/log"
 	"mgrok/util"
+	"net/http"
 	"os"
 	"runtime"
 	"time"
@@ -55,5 +56,16 @@ func Main() {
 
 	go model.Run()
 
+	if config.PprofAddr != "" {
+		go func() {
+			http.ListenAndServe(config.PprofAddr, nil)
+		}()
+	}
+
 	startConsole(model.changed)
+
+	done := make(chan int)
+	defer close(done)
+
+	<-done
 }

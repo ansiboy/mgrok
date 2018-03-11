@@ -7,6 +7,7 @@ import (
 	"mgrok/msg"
 	"mgrok/util"
 	"net"
+	"net/http"
 	"os"
 	"runtime/debug"
 	"time"
@@ -152,6 +153,12 @@ func Main() {
 	var httpAddr net.Addr
 	if config.HTTPAddr != "" {
 		httpAddr = startHTTPListener(config.HTTPAddr)
+	}
+
+	if config.PprofAddr != "" {
+		go func() {
+			http.ListenAndServe(config.PprofAddr, nil)
+		}()
 	}
 
 	// ngrok clients

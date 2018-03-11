@@ -66,6 +66,8 @@ func Main() {
 			return
 		}
 
+		defer respons.Body.Close()
+
 		for key, values := range respons.Header {
 			for _, value := range values {
 				writer.Header().Set(key, value)
@@ -76,6 +78,12 @@ func Main() {
 		writer.Write(body)
 
 	})
+
+	if config.PprofAddr != "" {
+		go func() {
+			http.ListenAndServe(config.PprofAddr, nil)
+		}()
+	}
 
 	logger.Info("HTTP service listen at %s", config.HTTPAddr)
 	http.ListenAndServe(config.HTTPAddr, nil)

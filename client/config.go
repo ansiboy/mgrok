@@ -25,6 +25,7 @@ type Configuration struct {
 	Tunnels   map[string]*TunnelConfiguration `yaml:"tunnels,omitempty"`
 	LogTo     string                          `yaml:"-"`
 	Path      string                          `yaml:"-"`
+	PprofAddr string                          `yaml:"pprof_addr,omitempty"`
 }
 
 // TunnelConfiguration tunnel configuration

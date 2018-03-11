@@ -19,10 +19,11 @@ const (
 
 // Configuration http proxy configuration
 type Configuration struct {
-	HTTPAddr string `yaml:"http_addr,omitempty"`
-	DataAddr string `yaml:"data_addr,omitempty"`
-	LogTo    string `yaml:"log_to,omitempty"`
-	LogLevel string `yaml:"log_level,omitempty"`
+	HTTPAddr  string `yaml:"http_addr,omitempty"`
+	DataAddr  string `yaml:"data_addr,omitempty"`
+	LogTo     string `yaml:"log_to,omitempty"`
+	LogLevel  string `yaml:"log_level,omitempty"`
+	PprofAddr string `yaml:"pprof_addr,omitempty"`
 }
 
 func loadConfiguration(configPath string) (config *Configuration, err error) {

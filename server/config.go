@@ -19,6 +19,7 @@ type Configuration struct {
 	LogTo           string `yaml:"log_to,omitempty"`
 	LogLevel        string `yaml:"log_level,omitempty"`
 	HTTPPulbishPort string `yaml:"http_pulbish_port,omitempty"`
+	PprofAddr       string `yaml:"pprof_addr,omitempty"`
 }
 
 const (

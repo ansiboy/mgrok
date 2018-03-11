@@ -14,7 +14,7 @@ import (
 var table *tview.Table
 var app = tview.NewApplication()
 
-func startConsole(modelChan chan *Model) {
+func startConsole(modelChan chan *Model) error {
 	go func() {
 		for {
 			c := <-modelChan
@@ -36,6 +36,7 @@ func startConsole(modelChan chan *Model) {
 		app = nil
 		log.Error("init tview fail.\r")
 	}
+	return err
 }
 
 func render(c *Model) {
