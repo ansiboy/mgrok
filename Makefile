@@ -4,7 +4,7 @@ export GOARCH=
 
 pkgs:
 	go get -u github.com/alecthomas/log4go
-	go get -u github.com/gizak/termui
+	go get -u github.com/rivo/tview
 	go get -u github.com/inconshreveable/mousetrap
 	go get -u github.com/rcrowley/go-metrics
 	go get -u gopkg.in/yaml.v1

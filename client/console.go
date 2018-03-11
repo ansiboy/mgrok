@@ -5,16 +5,16 @@ import (
 	"mgrok/log"
 	"time"
 
-	"github.com/gizak/termui"
+	"github.com/gdamore/tcell"
+
+	"github.com/rivo/tview"
+	// "github.com/gizak/termui"
 )
 
+var table *tview.Table
+var app = tview.NewApplication()
+
 func startConsole(modelChan chan *Model) {
-	err := termui.Init()
-	if err != nil {
-		// panic(err)
-		log.Error("init termui fail.\r")
-	}
-	defer termui.Close()
 	go func() {
 		for {
 			c := <-modelChan
@@ -22,12 +22,20 @@ func startConsole(modelChan chan *Model) {
 		}
 	}()
 
-	termui.Handle("/sys/kbd/C-c", func(termui.Event) {
-		// handle Ctrl + x combination
-		termui.StopLoop()
+	table = tview.NewTable().SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEscape || key == tcell.KeyCtrlC {
+			app.Stop()
+		}
 	})
 
-	termui.Loop()
+	cell := tview.NewTableCell("connecting").SetAlign(tview.AlignCenter)
+	table.SetCell(0, 0, cell)
+	app.SetRoot(table, true)
+	err := app.Run()
+	if err != nil {
+		app = nil
+		log.Error("init tview fail.\r")
+	}
 }
 
 func render(c *Model) {
@@ -68,16 +76,10 @@ func render(c *Model) {
 	}
 
 	data = append(data, tunnels...)
+	for r := 0; r < len(data); r++ {
+		table.SetCell(r, 0, tview.NewTableCell(data[r][0]))
+		table.SetCell(r, 1, tview.NewTableCell(data[r][1]))
+	}
 
-	table1 := termui.NewTable()
-	table1.Rows = data
-	table1.FgColor = termui.ColorWhite
-	table1.BgColor = termui.ColorDefault
-	table1.Y = 0
-	table1.X = 0
-
-	table1.Analysis()
-	table1.SetSize()
-
-	termui.Render(table1)
+	app.Draw()
 }
