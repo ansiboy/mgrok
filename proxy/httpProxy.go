@@ -26,7 +26,8 @@ var ActionRegister = "REGISTER"
 var ActionDelete = "DELETE"
 
 var tunnleInfos = make(map[string]HTTPRedirect)
-var logger log.Logger // =
+var logger log.Logger
+
 func Main() {
 	opts := parseArgs()
 	config, err := loadConfiguration(opts.config)
@@ -35,49 +36,54 @@ func Main() {
 	logger = log.NewPrefixLogger("mgrokp")
 	go start(config)
 
-	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		client := new(http.Client)
+	server := &http.Server{
+		Addr: config.HTTPAddr,
+		Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			client := new(http.Client)
 
-		var err error
+			var err error
 
-		host := request.Header.Get("X-Host")
-		if len(host) == 0 {
-			host = request.Host
-		}
-		redirectInfo, ok := tunnleInfos[host]
-		if ok == false {
-			http.NotFound(writer, request)
-			return
-		}
-
-		targetURL := "http://" + redirectInfo.TargetAddr + request.URL.Path
-		request.URL, err = url.Parse(targetURL)
-		if err != nil {
-			log.Error(err.Error())
-			internalServerError(writer)
-			return
-		}
-
-		request.RequestURI = ""
-		respons, err := client.Do(request)
-		if err != nil {
-			log.Error(err.Error())
-			internalServerError(writer)
-			return
-		}
-
-		defer respons.Body.Close()
-
-		for key, values := range respons.Header {
-			for _, value := range values {
-				writer.Header().Set(key, value)
+			host := request.Header.Get("X-Host")
+			if len(host) == 0 {
+				host = request.Host
 			}
-		}
+			redirectInfo, ok := tunnleInfos[host]
+			if ok == false {
+				internalServerError(writer)
+				fmt.Fprintf(writer, "Tunnel %s not found", host)
+				// fmt.Printf("Tunnel %s not found", host)
+				return
+			}
 
-		body, _ := ioutil.ReadAll(respons.Body)
-		writer.Write(body)
+			targetURL := "http://" + redirectInfo.TargetAddr + request.URL.Path
+			request.URL, err = url.Parse(targetURL)
+			if err != nil {
+				log.Error(err.Error())
+				internalServerError(writer)
+				return
+			}
 
-	})
+			request.RequestURI = ""
+			respons, err := client.Do(request)
+			if err != nil {
+				log.Error(err.Error())
+				internalServerError(writer)
+				return
+			}
+
+			defer respons.Body.Close()
+
+			writer.WriteHeader(respons.StatusCode)
+			for key, values := range respons.Header {
+				for _, value := range values {
+					writer.Header().Set(key, value)
+				}
+			}
+
+			body, _ := ioutil.ReadAll(respons.Body)
+			writer.Write(body)
+		}),
+	}
 
 	if config.PprofAddr != "" {
 		go func() {
@@ -86,11 +92,11 @@ func Main() {
 	}
 
 	logger.Info("HTTP service listen at %s", config.HTTPAddr)
-	http.ListenAndServe(config.HTTPAddr, nil)
+	server.ListenAndServe()
 }
 
 func internalServerError(writer http.ResponseWriter) {
-	msg := string(http.StatusInternalServerError) + " internal server error"
+	msg := fmt.Sprintf("%d %s", http.StatusInternalServerError, "internal server error") // string(http.StatusInternalServerError) +
 	http.Error(writer, msg, http.StatusInternalServerError)
 }
 
