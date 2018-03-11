@@ -28,7 +28,7 @@ func parseArgs() (opts *Options) {
 
 	switch opts.command {
 	case "version":
-		fmt.Println(version.MajorMinor())
+		fmt.Println(version.Full())
 		os.Exit(0)
 	case "help":
 		flag.Usage()
