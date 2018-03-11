@@ -41,7 +41,7 @@ linux32: copy
 
 arm: export GOOS=linux
 arm: export GOARCH=arm
-arm: DIR=linx_arm/
+arm: DIR=linux_arm/
 arm: build
 arm: copy
 
