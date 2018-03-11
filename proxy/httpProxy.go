@@ -28,6 +28,8 @@ var ActionDelete = "DELETE"
 var tunnleInfos = make(map[string]HTTPRedirect)
 var logger log.Logger
 
+const statusCodeTunnelNotFound = 550
+
 func Main() {
 	opts := parseArgs()
 	config, err := loadConfiguration(opts.config)
@@ -49,8 +51,9 @@ func Main() {
 			}
 			redirectInfo, ok := tunnleInfos[host]
 			if ok == false {
-				internalServerError(writer)
-				fmt.Fprintf(writer, "Tunnel %s not found", host)
+				msg := fmt.Sprintf("Tunnel %s not found", host)
+				http.Error(writer, msg, statusCodeTunnelNotFound)
+				// fmt.Fprintf(writer, "Tunnel %s not found", host)
 				// fmt.Printf("Tunnel %s not found", host)
 				return
 			}
