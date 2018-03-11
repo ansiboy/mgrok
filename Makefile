@@ -11,21 +11,21 @@ pkgs:
 	go get -u github.com/kardianos/osext
 	go get -u github.com/inconshreveable/go-vhost
 
-build: pkgs
+#build: pkgs
 build:
-	go build -o .bin/$(DIR)mgrok main/client/mgrok.go
-	go build -o .bin/$(DIR)mgrokd main/server/mgrokd.go
-	go build -o .bin/$(DIR)mgrokp main/proxy/mgrokp.go
+	go build -o _bin/$(DIR)mgrok main/client/mgrok.go
+	#go build -o _bin/$(DIR)mgrokd main/server/mgrokd.go
+	#go build -o _bin/$(DIR)mgrokp main/proxy/mgrokp.go
 
 build_exe:
-	go build -o .bin/$(DIR)mgrok.exe main/client/mgrok.go
-	go build -o .bin/$(DIR)mgrokd.exe main/server/mgrokd.go
-	go build -o .bin/$(DIR)mgrokp.exe main/mgrokp/mgrokp.go
+	go build -o _bin/$(DIR)mgrok.exe main/client/mgrok.go
+	#go build -o _bin/$(DIR)mgrokd.exe main/server/mgrokd.go
+	#go build -o _bin/$(DIR)mgrokp.exe main/proxy/mgrokp.go
 
 copy:
-	cp main/client/mgrok.yaml .bin/$(DIR)mgrok.yaml	
-	cp main/server/mgrokd.yaml .bin/$(DIR)mgrokd.yaml
-	cp main/proxy/mgrokp.yaml .bin/$(DIR)mgrokp.yaml	
+	cp main/client/mgrok.yaml _bin/$(DIR)mgrok.yaml	
+	#cp main/server/mgrokd.yaml _bin/$(DIR)mgrokd.yaml
+	#cp main/proxy/mgrokp.yaml _bin/$(DIR)mgrokp.yaml	
 
 linux64: export GOOS=linux
 linux64: export GOARCH=amd64
@@ -41,7 +41,7 @@ linux32: copy
 
 arm: export GOOS=linux
 arm: export GOARCH=arm
-arm: DIR=arm/
+arm: DIR=linx_arm/
 arm: build
 arm: copy
 
@@ -71,3 +71,8 @@ darwin32: copy
 
 default: build
 default: copy
+default:
+	go build -o _bin/$(DIR)mgrokd main/server/mgrokd.go
+	go build -o _bin/$(DIR)mgrokp main/proxy/mgrokp.go
+	cp main/server/mgrokd.yaml _bin/$(DIR)mgrokd.yaml
+	cp main/proxy/mgrokp.yaml _bin/$(DIR)mgrokp.yaml	

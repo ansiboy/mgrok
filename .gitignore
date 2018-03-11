@@ -1,5 +1,6 @@
 *.swp
 .bin/
+_bin
 main/client/debug
 main/client/mgrok
 main/server/debug
