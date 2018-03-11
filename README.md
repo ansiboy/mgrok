@@ -217,3 +217,6 @@ tunnels:
     main\proxy\mgrokp.yaml
     ```
 
+## 讨论组
+
+QQ 群：371677466
