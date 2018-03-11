@@ -53,13 +53,14 @@ func Main() {
 			if ok == false {
 				msg := fmt.Sprintf("Tunnel %s not found", host)
 				http.Error(writer, msg, statusCodeTunnelNotFound)
-				// fmt.Fprintf(writer, "Tunnel %s not found", host)
-				// fmt.Printf("Tunnel %s not found", host)
 				return
 			}
 
-			targetURL := "http://" + redirectInfo.TargetAddr + request.URL.Path
+			targetURL := request.RequestURI
 			request.URL, err = url.Parse(targetURL)
+			request.URL.Host = redirectInfo.TargetAddr
+			request.URL.Scheme = "http"
+
 			if err != nil {
 				log.Error(err.Error())
 				internalServerError(writer)
@@ -76,13 +77,13 @@ func Main() {
 
 			defer respons.Body.Close()
 
-			writer.WriteHeader(respons.StatusCode)
 			for key, values := range respons.Header {
 				for _, value := range values {
 					writer.Header().Set(key, value)
 				}
 			}
 
+			writer.WriteHeader(respons.StatusCode)
 			body, _ := ioutil.ReadAll(respons.Body)
 			writer.Write(body)
 		}),
