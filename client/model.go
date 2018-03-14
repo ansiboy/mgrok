@@ -157,10 +157,11 @@ func (c *Model) update() {
 
 	c.changed <- c
 	if c.outputMetrics != "none" && c.outputMetrics != "" {
-		file, err := getWriter(c.outputMetrics)
+		file, err := newFile(c.outputMetrics)
 		if err != nil {
 			return
 		}
+		defer file.Close()
 
 		metrics, err := json.Marshal(c.metrics)
 		if err != nil {
@@ -176,7 +177,7 @@ func (c *Model) update() {
 	}
 }
 
-func getWriter(tag string) (*os.File, error) {
+func newFile(tag string) (*os.File, error) {
 	if tag == "stdout" {
 		return os.Stdout, nil
 	} else if tag == "none" {
