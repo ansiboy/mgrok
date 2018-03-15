@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"mgrok/conn"
@@ -33,11 +32,6 @@ const (
 `
 )
 
-const (
-	metricsBeginTag = "metrics begin"
-	metricsEndTag   = "metrics end"
-)
-
 // Model client model
 type Model struct {
 	log.Logger
@@ -53,11 +47,10 @@ type Model struct {
 	tunnelConfig  map[string]*TunnelConfiguration
 	configPath    string
 	changed       chan *Model
-	outputMetrics string
 	// updateCallback func(c *Model)
 }
 
-func newClientModel(config *Configuration, outputMetrics string, changed chan *Model) *Model {
+func newClientModel(config *Configuration, changed chan *Model) *Model {
 
 	m := &Model{
 		Logger: log.NewPrefixLogger("client"),
@@ -90,8 +83,6 @@ func newClientModel(config *Configuration, outputMetrics string, changed chan *M
 		configPath: config.Path,
 
 		changed: changed,
-
-		outputMetrics: outputMetrics,
 	}
 
 	// defer close(m.changed)
@@ -154,27 +145,7 @@ func (c Model) SetUpdateStatus(updateStatus UpdateStatus) {
 }
 
 func (c *Model) update() {
-
 	c.changed <- c
-	if c.outputMetrics != "none" && c.outputMetrics != "" {
-		file, err := newFile(c.outputMetrics)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-
-		metrics, err := json.Marshal(c.metrics)
-		if err != nil {
-			c.Logger.Error("Marshal metrics fail.", err)
-			return
-		}
-
-		fmt.Fprintln(file, metricsBeginTag)
-
-		fmt.Fprintln(file, metrics)
-		fmt.Fprintln(file, metricsEndTag)
-
-	}
 }
 
 func newFile(tag string) (*os.File, error) {

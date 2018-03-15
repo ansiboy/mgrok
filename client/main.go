@@ -52,7 +52,7 @@ func Main() {
 	modelChan := make(chan *Model)
 	defer close(modelChan)
 
-	model := newClientModel(config, opts.outputMetrics, modelChan)
+	model := newClientModel(config, modelChan)
 
 	go model.Run()
 
@@ -62,11 +62,18 @@ func Main() {
 		}()
 	}
 
-	err = startConsole(model.changed)
-	if err != nil {
-		done := make(chan int)
-		defer close(done)
+	if config.LogTo != "stdout" {
+		startConsole(model.changed)
+		return
+	}
 
-		<-done
+	for {
+		c := <-model.changed
+		// 延时 0.5 秒，让其他信息先输出
+		time.AfterFunc(500, func() {
+			fmt.Println()
+			printModelInfo(c)
+			fmt.Println()
+		})
 	}
 }

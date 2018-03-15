@@ -37,17 +37,16 @@ Examples:
 
 // Options options
 type Options struct {
-	config        string
-	log           string
-	loglevel      string
-	authtoken     string
-	httpauth      string
-	hostname      string
-	protocol      string
-	subdomain     string
-	outputMetrics string
-	command       string
-	args          []string
+	config    string
+	log       string
+	loglevel  string
+	authtoken string
+	httpauth  string
+	hostname  string
+	protocol  string
+	subdomain string
+	command   string
+	args      []string
 }
 
 // ParseArgs parse args
@@ -98,25 +97,18 @@ func ParseArgs() (opts *Options, err error) {
 		"http",
 		"The protocol of the traffic over the tunnel {'http', 'tcp'} (default: 'http')")
 
-	outputMetrics := flag.String(
-		"output_metrics",
-		"none",
-		"Output the metrics to stand output.",
-	)
-
 	flag.Parse()
 
 	opts = &Options{
-		config:        *config,
-		log:           *logto,
-		loglevel:      *loglevel,
-		httpauth:      *httpauth,
-		subdomain:     *subdomain,
-		protocol:      *protocol,
-		authtoken:     *authtoken,
-		hostname:      *hostname,
-		outputMetrics: *outputMetrics,
-		command:       flag.Arg(0),
+		config:    *config,
+		log:       *logto,
+		loglevel:  *loglevel,
+		httpauth:  *httpauth,
+		subdomain: *subdomain,
+		protocol:  *protocol,
+		authtoken: *authtoken,
+		hostname:  *hostname,
+		command:   flag.Arg(0),
 	}
 
 	switch opts.command {

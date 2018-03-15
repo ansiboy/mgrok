@@ -3,9 +3,11 @@ package client
 import (
 	"fmt"
 	"mgrok/log"
+	"os"
 	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/rivo/tview"
 	// "github.com/gizak/termui"
@@ -14,7 +16,7 @@ import (
 var table *tview.Table
 var app = tview.NewApplication()
 
-func startConsole(modelChan chan *Model) error {
+func startConsole(modelChan chan *Model) {
 	go func() {
 		for {
 			c := <-modelChan
@@ -33,13 +35,20 @@ func startConsole(modelChan chan *Model) error {
 	app.SetRoot(table, true)
 	err := app.Run()
 	if err != nil {
-		app = nil
 		log.Error("init tview fail.\r")
+		panic(err)
 	}
-	return err
 }
 
-func render(c *Model) {
+func printModelInfo(model *Model) {
+	data := modelData(model)
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAutoWrapText(false)
+	table.AppendBulk(data)
+	table.Render()
+}
+
+func modelData(c *Model) [][]string {
 	var connStatus = ""
 	switch c.connStatus {
 	case ConnConnecting:
@@ -77,6 +86,13 @@ func render(c *Model) {
 	}
 
 	data = append(data, tunnels...)
+
+	return data
+}
+
+func render(c *Model) {
+
+	data := modelData(c)
 	for r := 0; r < len(data); r++ {
 		table.SetCell(r, 0, tview.NewTableCell(data[r][0]))
 		table.SetCell(r, 1, tview.NewTableCell(data[r][1]))
