@@ -62,10 +62,11 @@ func Main() {
 		}()
 	}
 
-	startConsole(model.changed)
+	err = startConsole(model.changed)
+	if err != nil {
+		done := make(chan int)
+		defer close(done)
 
-	done := make(chan int)
-	defer close(done)
-
-	<-done
+		<-done
+	}
 }
