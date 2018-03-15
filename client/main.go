@@ -52,7 +52,7 @@ func Main() {
 	modelChan := make(chan *Model)
 	defer close(modelChan)
 
-	model := newClientModel(config, modelChan)
+	model := newClientModel(config, opts.outputMetrics, modelChan)
 
 	go model.Run()
 
