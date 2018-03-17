@@ -2,38 +2,41 @@ package msg
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"mgrok/log"
 	"net"
 )
 
+var logger = log.NewPrefixLogger("conn")
+
 func readMsgShared(c net.Conn) (buffer []byte, err error) {
-	log.Debug("Waiting to read message")
+	logger.Debug("Waiting to read message")
 
 	var sz int64
 	err = binary.Read(c, binary.LittleEndian, &sz)
 	if err != nil {
 		return
 	}
-	log.Debug("Reading message with length: %d", sz)
+	logger.Debug("Reading message with length: %d", sz)
 
 	buffer = make([]byte, sz)
 	n, err := c.Read(buffer)
-	log.Debug("Read message %s", buffer)
+	logger.Debug("Read message %s", buffer)
 
 	if err != nil {
 		return
 	}
 
 	if int64(n) != sz {
-		err = errors.New(fmt.Sprintf("Expected to read %d bytes, but only read %d", sz, n))
+		err = fmt.Errorf("Expected to read %d bytes, but only read %d", sz, n)
+		// err = errors.New(fmt.Sprintf("Expected to read %d bytes, but only read %d", sz, n))
 		return
 	}
 
 	return
 }
 
+//ReadMsg read message
 func ReadMsg(c net.Conn) (msg Message, err error) {
 	buffer, err := readMsgShared(c)
 	if err != nil {
@@ -43,6 +46,7 @@ func ReadMsg(c net.Conn) (msg Message, err error) {
 	return Unpack(buffer)
 }
 
+//ReadMsgInto read message info
 func ReadMsgInto(c net.Conn, msg Message) (err error) {
 	buffer, err := readMsgShared(c)
 	if err != nil {
@@ -51,13 +55,14 @@ func ReadMsgInto(c net.Conn, msg Message) (err error) {
 	return UnpackInto(buffer, msg)
 }
 
+//WriteMsg write message
 func WriteMsg(c net.Conn, msg interface{}) (err error) {
 	buffer, err := Pack(msg)
 	if err != nil {
 		return
 	}
 
-	log.Debug("Writing message: %s", string(buffer))
+	logger.Debug("Writing message: %s", string(buffer))
 	err = binary.Write(c, binary.LittleEndian, int64(len(buffer)))
 
 	if err != nil {
