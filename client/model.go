@@ -25,8 +25,9 @@ const (
 	maxPongLatency      = 15 * time.Second
 	updateCheckInterval = 6 * time.Hour
 	badGateway          = `<html>
+	<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="background-color: #97a8b9">
-    <div style="margin:auto; width:400px;padding: 20px 60px; background-color: #D3D3D3; border: 5px solid maroon;">
+    <div style="margin:auto; padding: 20px 60px; background-color: #D3D3D3; border: 5px solid maroon;">
         <h2>Tunnel %s unavailable</h2>
         <p>Unable to initiate connection to <strong>%s</strong>. A web server must be running on port <strong>%s</strong> to complete the tunnel.</p>
 `
