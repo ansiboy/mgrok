@@ -1,13 +1,13 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"mgrok/log"
 	"os"
 	"time"
 
 	"github.com/gdamore/tcell"
-	"github.com/olekukonko/tablewriter"
 
 	"github.com/rivo/tview"
 	// "github.com/gizak/termui"
@@ -42,10 +42,16 @@ func startConsole(modelChan chan *Model) {
 
 func printModelInfo(model *Model) {
 	data := modelData(model)
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoWrapText(false)
-	table.AppendBulk(data)
-	table.Render()
+	// table := tablewriter.NewWriter(os.Stdout)
+	// table.SetAutoWrapText(false)
+	// table.AppendBulk(data)
+	// table.Render()
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	fmt.Fprintf(os.Stdout, "[METRICS] %s", bytes)
 }
 
 func modelData(c *Model) [][]string {
