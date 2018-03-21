@@ -70,10 +70,10 @@ func Main() {
 	for {
 		c := <-model.changed
 		// 延时 0.5 秒，让其他信息先输出
-		time.AfterFunc(500, func() {
-			fmt.Println()
-			printModelInfo(c)
-			fmt.Println()
-		})
+		// time.AfterFunc(500, func() {
+		// fmt.Println()
+		printModelInfo(c)
+		// fmt.Println()
+		// })
 	}
 }
