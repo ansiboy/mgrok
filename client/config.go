@@ -30,12 +30,15 @@ type Configuration struct {
 
 // TunnelConfiguration tunnel configuration
 type TunnelConfiguration struct {
-	Subdomain  string            `yaml:"subdomain,omitempty"`
-	Hostname   string            `yaml:"hostname,omitempty"`
-	Protocols  map[string]string `yaml:"proto,omitempty"`
-	HTTPAuth   string            `yaml:"auth,omitempty"`
-	RemotePort uint16            `yaml:"remote_port,omitempty"`
+	Subdomain  string `yaml:"subdomain,omitempty"`
+	Hostname   string `yaml:"hostname,omitempty"`
+	Protocol   string `yaml:"proto,omitempty"`
+	Address    string `yaml:"addr,omitempty"`
+	HTTPAuth   string `yaml:"auth,omitempty"`
+	RemotePort uint16 `yaml:"remote_port,omitempty"`
 }
+
+// Protocols  map[string]string `yaml:"proto,omitempty"`
 
 // LoadConfiguration load config
 func LoadConfiguration(opts *Options) (config *Configuration, err error) {
@@ -97,20 +100,28 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 	}
 
 	for name, t := range config.Tunnels {
-		if t == nil || t.Protocols == nil || len(t.Protocols) == 0 {
+		if t == nil || len(t.Protocol) == 0 { // t.Protocol == nil ||
 			err = fmt.Errorf("Tunnel %s does not specify any protocols to tunnel.\r", name)
 			return
 		}
 
-		for k, addr := range t.Protocols {
-			tunnelName := fmt.Sprintf("for tunnel %s[%s]", name, k)
-			if t.Protocols[k], err = normalizeAddress(addr, tunnelName); err != nil {
-				return
-			}
+		// for k, addr := range t.Protocols {
+		// 	tunnelName := fmt.Sprintf("for tunnel %s[%s]", name, k)
+		// 	if t.Protocols[k], err = normalizeAddress(addr, tunnelName); err != nil {
+		// 		return
+		// 	}
 
-			if err = validateProtocol(k, tunnelName); err != nil {
-				return
-			}
+		// 	if err = validateProtocol(k, tunnelName); err != nil {
+		// 		return
+		// 	}
+		// }
+
+		tunnelName := fmt.Sprintf("for tunnel %s[%s]", name, t.Protocol)
+		if t.Address, err = normalizeAddress(t.Address, tunnelName); err != nil {
+			return
+		}
+		if err = validateProtocol(t.Protocol, tunnelName); err != nil {
+			return
 		}
 
 		// use the name of the tunnel as the subdomain if none is specified
@@ -140,7 +151,8 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 			Subdomain: opts.subdomain,
 			Hostname:  opts.hostname,
 			HTTPAuth:  opts.httpauth,
-			Protocols: make(map[string]string),
+			Protocol:  "",
+			Address:   "",
 		}
 
 		for _, proto := range strings.Split(opts.protocol, "+") {
@@ -148,7 +160,7 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 				return
 			}
 
-			if config.Tunnels["default"].Protocols[proto], err = normalizeAddress(opts.args[0], ""); err != nil {
+			if config.Tunnels["default"].Protocol, err = normalizeAddress(opts.args[0], ""); err != nil {
 				return
 			}
 		}

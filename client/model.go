@@ -250,9 +250,10 @@ func (c *Model) control() {
 	for _, config := range c.tunnelConfig {
 		// create the protocol list to ask for
 		var protocols []string
-		for proto := range config.Protocols {
-			protocols = append(protocols, proto)
-		}
+		// for proto := range config.Protocols {
+		// 	protocols = append(protocols, proto)
+		// }
+		protocols = append(protocols, config.Protocol)
 
 		reqTunnel := &msg.ReqTunnel{
 			ReqId:      util.RandId(8),
@@ -305,7 +306,7 @@ func (c *Model) control() {
 
 			tunnel := Tunnel{
 				PublicUrl: m.Url,
-				LocalAddr: reqIDToTunnelConfig[m.ReqId].Protocols[m.Protocol],
+				LocalAddr: reqIDToTunnelConfig[m.ReqId].Address, //Protocols[m.Protocol],
 				// Protocol:  c.protoMap[m.Protocol],
 				Type: m.Protocol,
 			}
