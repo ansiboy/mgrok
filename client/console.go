@@ -51,7 +51,9 @@ func printModelInfo(model *Model) {
 		log.Error(err.Error())
 		return
 	}
+	fmt.Println()
 	fmt.Fprintf(os.Stdout, "[METRICS] %s", bytes)
+	fmt.Println()
 }
 
 func modelData(c *Model) [][]string {
