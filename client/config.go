@@ -44,7 +44,6 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 		configPath = defaultPath()
 	}
 
-	log.Info("Reading configuration file %s", configPath)
 	configBuf, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		// failure to read a configuration file is only a fatal error if
@@ -53,6 +52,8 @@ func LoadConfiguration(opts *Options) (config *Configuration, err error) {
 			err = fmt.Errorf("Failed to read configuration file %s: %v", configPath, err)
 			return
 		}
+	} else {
+		log.Info("Reading configuration file %s", configPath)
 	}
 
 	// deserialize/parse the config

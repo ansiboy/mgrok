@@ -60,7 +60,7 @@ func ParseArgs() (opts *Options, err error) {
 	config := flag.String(
 		"config",
 		"",
-		"Path to mgrok configuration file. (default: mgrok.yaml)")
+		"Path to mgrok configuration file.")
 
 	logto := flag.String(
 		"log",
