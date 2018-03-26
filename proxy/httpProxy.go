@@ -37,10 +37,11 @@ func Main() {
 	log.LogTo(config.LogTo, config.LogLevel)
 	logger = log.NewPrefixLogger("mgrokp")
 	go start(config)
-	client := new(http.Client)
+
 	server := &http.Server{
 		Addr: config.HTTPAddr,
 		Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			client := new(http.Client)
 
 			var err error
 
